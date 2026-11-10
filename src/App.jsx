@@ -7,6 +7,19 @@ import {
 } from "lucide-react";
 
 const CLASSROOM_URL = "https://classroom.google.com/h/st";
+const destinations = {
+  "Minecraft":"https://www.minecraft.net/","Roblox":"https://www.roblox.com/",
+  "Fortnite":"https://www.fortnite.com/","Rocket League":"https://www.rocketleague.com/",
+  "EA SPORTS FC Mobile":"https://www.ea.com/games/ea-sports-fc/fc-mobile",
+  "BUSSID":"https://www.maleo.web.id/","Counter-Strike":"https://www.counter-strike.net/",
+  "Free Fire":"https://ff.garena.com/","YouTube":"https://www.youtube.com/",
+  "Instagram":"https://www.instagram.com/","Discord":"https://discord.com/app",
+  "Reddit":"https://www.reddit.com/","Pinterest":"https://www.pinterest.com/",
+  "Spotify":"https://open.spotify.com/","Google Classroom":CLASSROOM_URL
+};
+const todayLabel = new Intl.DateTimeFormat("en", {
+  weekday:"long", month:"long", day:"numeric", year:"numeric"
+}).format(new Date()).toUpperCase();
 
 const modules = [
   { id: "games", title: "Game zone", desc: "Your games, all in one place.", icon: Gamepad2, tint: "violet", tag: "PLAY", items: ["Minecraft", "Roblox", "Fortnite", "Rocket League", "EA SPORTS FC Mobile", "BUSSID", "Counter-Strike", "Free Fire"] },
@@ -87,7 +100,7 @@ function App() {
           <button className="icon-btn mobile-menu" onClick={() => setMobileOpen(true)} aria-label="Open menu"><Menu size={20}/></button>
           <div className="breadcrumb"><span>PINAPPLE</span><ChevronRight size={14}/><strong>{navItems.find(n => n.id === page)?.label || "Home"}</strong></div>
           <div className="top-actions">
-            <span className="status-pill"><i/> PORTAL PREVIEW</span>
+            <span className="status-pill"><i/> EARLY ACCESS</span>
             <button className="icon-btn" aria-label="Help" onClick={() => announce("PINAPPLE help centre is coming soon.")}><CircleHelp size={18}/></button>
             <button className="avatar top-avatar" onClick={() => setShowLogin(true)} aria-label="Open sign in">S</button>
           </div>
@@ -99,7 +112,7 @@ function App() {
             <div className="eyebrow"><span className={`eyebrow-dot ${activeModule.tint}`}/>{activeModule.tag} / PINAPPLE</div>
             <div className="page-heading"><div><h1>{activeModule.title}<span>.</span></h1><p>{activeModule.desc}</p></div><div className={`large-icon ${activeModule.tint}`}><activeModule.icon size={26}/></div></div>
             <div className="catalog-toolbar"><div className="search-box"><Search size={17}/><input value={query} onChange={e => setQuery(e.target.value)} placeholder={`Search ${activeModule.title.toLowerCase()}...`}/><kbd>/</kbd></div><span className="result-count">{filtered.length} LINKS</span></div>
-            <div className="link-grid">{filtered.map((item, i) => <button className="link-card" key={item} onClick={() => item === "Google Classroom" ? window.open(CLASSROOM_URL, "_blank", "noopener,noreferrer") : announce(`${item} link will be configured in the next build.`)}><div className={`link-card-icon ${activeModule.tint}`}>{item.slice(0,1)}</div><div className="link-card-copy"><strong>{item}</strong><span>{activeModule.id === "games" ? "Game listing · Official access" : "Quick access link"}</span></div><ArrowUpRight size={17}/></button>)}</div>
+            <div className="link-grid">{filtered.map((item, i) => <button className="link-card" key={item} onClick={() => destinations[item] ? window.open(destinations[item], "_blank", "noopener,noreferrer") : announce(`${item} is a catalogue placeholder. A verified source will be added later.`)}><div className={`link-card-icon ${activeModule.tint}`}>{item.slice(0,1)}</div><div className="link-card-copy"><strong>{item}</strong><span>{activeModule.id === "games" ? "Game listing · Official access" : "Quick access link"}</span></div><ArrowUpRight size={17}/></button>)}</div>
             <div className="info-banner"><ShieldCheck size={18}/><span>PINAPPLE is a directory and student portal. Games and third-party services open through their official platforms; availability depends on your device and school policies.</span></div>
           </section>}
           {page === "messages" && <Messages message={message} setMessage={setMessage} sent={sent} setSent={setSent} announce={announce}/>}
@@ -116,12 +129,12 @@ function App() {
 
 function Home({ go, openLogin, announce }) {
   return <div className="home-page">
-    <div className="welcome-row"><div><div className="eyebrow"><span className="eyebrow-dot green"/> TUESDAY, NOVEMBER 10, 2026</div><h1>Your space.<br/><span>Your pace.</span></h1><p className="welcome-copy">One place for the things you love, the people you know, and the work that matters.</p><div className="hero-actions"><button className="primary-btn" onClick={openLogin}>Student sign in <ArrowUpRight size={17}/></button><a className="text-link" href={CLASSROOM_URL} target="_blank" rel="noreferrer">Open Google Classroom <ExternalLink size={14}/></a></div></div><div className="hero-art"><div className="orbit orbit-one"/><div className="orbit orbit-two"/><div className="hero-orb"><span>p</span><i/></div><div className="float-chip chip-top"><Sparkles size={14}/> YOUR CORNER OF THE INTERNET</div><div className="float-chip chip-bottom"><span className="pulse"/> READY WHEN YOU ARE</div><div className="tiny-star star-one">✳</div><div className="tiny-star star-two">✦</div></div></div>
-    <div className="section-title-row"><div><div className="eyebrow">EXPLORE</div><h2>What are we doing today?</h2></div><span className="muted-count">04 SPACES</span></div>
+    <div className="welcome-row"><div><div className="eyebrow"><span className="eyebrow-dot green"/> {todayLabel}</div><h1>Your space.<br/><span>Your pace.</span></h1><p className="welcome-copy">A considered space for your everyday essentials — study, community, discovery and downtime.</p><div className="hero-actions"><button className="primary-btn" onClick={openLogin}>Student sign in <ArrowUpRight size={17}/></button><a className="text-link" href={CLASSROOM_URL} target="_blank" rel="noreferrer">Open Google Classroom <ExternalLink size={14}/></a></div></div><div className="hero-art"><div className="orbit orbit-one"/><div className="orbit orbit-two"/><div className="hero-orb"><span>p</span><i/></div><div className="float-chip chip-top"><Sparkles size={14}/> YOUR CORNER OF THE INTERNET</div><div className="float-chip chip-bottom"><span className="pulse"/> READY WHEN YOU ARE</div><div className="tiny-star star-one">✳</div><div className="tiny-star star-two">✦</div></div></div>
+    <div className="section-title-row"><div><div className="eyebrow">EXPLORE</div><h2>Make today yours.</h2></div><span className="muted-count">04 SPACES</span></div>
     <div className="module-grid">{modules.map((m, i) => {const Icon=m.icon;return <button className={`module-card ${m.tint}`} key={m.id} onClick={() => go(m.id)}><div className="module-card-top"><div className="module-icon"><Icon size={20}/></div><span>{m.tag}</span></div><div className="module-card-bottom"><div><h3>{m.title}</h3><p>{m.desc}</p></div><div className="round-arrow"><ArrowUpRight size={18}/></div></div><div className="card-glow"/></button>})}</div>
     <div className="lower-grid"><section className="panel quick-panel"><div className="panel-heading"><div><div className="eyebrow">SHORTCUTS</div><h3>Jump right in</h3></div><Grid2X2 size={18}/></div><div className="quick-list">{quickLinks.map(link=>{const Icon=link.icon;return <a key={link.name} href={link.url} target="_blank" rel="noreferrer" className="quick-link"><span className={`quick-icon ${link.color}`}><Icon size={17}/></span><strong>{link.name}</strong><ArrowUpRight size={15}/></a>})}</div></section><section className="panel focus-panel"><div className="panel-heading"><div><div className="eyebrow">A LITTLE REMINDER</div><h3>Keep your balance.</h3></div><div className="focus-spark"><Sparkles size={18}/></div></div><p>Make room for fun, stay on top of your work, and look out for each other. That's the PINAPPLE way.</p><button className="outline-btn" onClick={()=>go("study")}>Visit study space <ChevronRight size={16}/></button></section></div>
     <div className="emergency-strip"><div className="emergency-icon"><GraduationCap size={19}/></div><div><strong>Need your classroom?</strong><span>Your classes are one click away.</span></div><a href={CLASSROOM_URL} target="_blank" rel="noreferrer" className="emergency-link">Open Classroom <ArrowUpRight size={16}/></a></div>
-    <div className="prototype-note"><Activity size={15}/> <span>Early preview · Login, messaging, and admin data are demonstration screens. No student data is collected or stored.</span></div>
+    <div className="prototype-note"><Activity size={15}/> <span>Prototype environment · Sign-in, messaging and admin analytics are visual previews only. No student data is collected or stored.</span></div>
   </div>;
 }
 
