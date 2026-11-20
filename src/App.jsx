@@ -46,10 +46,10 @@ function Catalogue({space,items,query,setQuery,favs,setFavs,watch,setWatch,say})
 
 function AuthGate({onSuccess,say}){
  const [mode,setMode]=useState("signin"),[roll,setRoll]=useState(""),[fullName,setFullName]=useState(""),[password,setPassword]=useState(""),[confirm,setConfirm]=useState(""),[captcha,setCaptcha]=useState(false),[showPassword,setShowPassword]=useState(false),[error,setError]=useState("");
- const rules=[["At least 8 characters",password.length>=8],["One uppercase letter",/[A-Z]/.test(password)],["One lowercase letter",/[a-z]/.test(password)],["One number",/\\d/.test(password)],["One special character",/[^A-Za-z0-9]/.test(password)]];
+ const rules=[["At least 8 characters",password.length>=8],["One uppercase letter",/[A-Z]/.test(password)],["One lowercase letter",/[a-z]/.test(password)],["One number",/\d/.test(password)],["One special character",/[^A-Za-z0-9]/.test(password)]];
  const strong=rules.every(x=>x[1]);
  const submit=(e)=>{e.preventDefault();setError("");
-  if(!/^\\d{4}$/.test(roll)){setError("Enter a valid four-digit roll number.");return;}
+  if(!/^\d{4}$/.test(roll)){setError("Enter a valid four-digit roll number.");return;}
   if(mode==="signup"&&!fullName.trim()){setError("Enter your full name.");return;}
   if(!strong){setError("Your password does not meet all security requirements.");return;}
   if(mode==="signup"&&password!==confirm){setError("Your passwords do not match.");return;}
@@ -66,7 +66,7 @@ function AuthGate({onSuccess,say}){
     <div className="auth-tabs"><button className={mode==="signin"?"selected":""} onClick={()=>changeMode("signin")}>Sign in</button><button className={mode==="signup"?"selected":""} onClick={()=>changeMode("signup")}>Create account</button></div>
     <form className="auth-form" onSubmit={submit}>
      {mode==="signup"&&<><label htmlFor="auth-name">FULL NAME</label><input id="auth-name" className="form-input" autoComplete="name" value={fullName} onChange={e=>setFullName(e.target.value)} placeholder="As registered with your school" maxLength={90}/></>}
-     <label htmlFor="auth-roll">STUDENT ROLL NUMBER</label><input id="auth-roll" className="form-input" inputMode="numeric" autoComplete="username" maxLength={4} value={roll} onChange={e=>setRoll(e.target.value.replace(/\\D/g,"").slice(0,4))} placeholder="Your 4-digit roll number"/>
+     <label htmlFor="auth-roll">STUDENT ROLL NUMBER</label><input id="auth-roll" className="form-input" inputMode="numeric" autoComplete="username" maxLength={4} value={roll} onChange={e=>setRoll(e.target.value.replace(/\D/g,"").slice(0,4))} placeholder="Your 4-digit roll number"/>
      <label htmlFor="auth-password">PASSWORD</label><div className="auth-password-wrap"><input id="auth-password" className="form-input" type={showPassword?"text":"password"} autoComplete={mode==="signin"?"current-password":"new-password"} value={password} onChange={e=>setPassword(e.target.value)} placeholder="Enter your password"/><button type="button" className="password-eye" onClick={()=>setShowPassword(v=>!v)}>{showPassword?"HIDE":"SHOW"}</button></div>
      {mode==="signup"&&<><div className="password-rules">{rules.map(([label,ok])=><span className={ok?"rule-ok":""} key={label}><i>{ok?"✓":"·"}</i>{label}</span>)}</div><label htmlFor="auth-confirm">CONFIRM PASSWORD</label><input id="auth-confirm" className="form-input" type="password" autoComplete="new-password" value={confirm} onChange={e=>setConfirm(e.target.value)} placeholder="Enter your password again"/>{confirm.length>0&&<div className={confirm===password?"match-note":"mismatch-note"}>{confirm===password?"✓ Passwords match":"Passwords do not match"}</div>}</>}
      {mode==="signin"&&<div className="auth-forgot"><button type="button" onClick={()=>setError("Password recovery will be enabled after backend and school email verification are configured.")}>Forgot password?</button></div>}
