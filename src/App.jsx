@@ -1,149 +1,45 @@
-import { useState } from "react";
-import {
-  Activity, ArrowUpRight, Bell, BookOpen, Check, ChevronRight, CircleHelp,
-  Clapperboard, Command, Gamepad2, GraduationCap, Grid2X2, LockKeyhole,
-  LogOut, MessageCircle, Play, Search, ShieldCheck, Sparkles, Users, X,
-  Zap, Menu, ExternalLink, LayoutDashboard, Settings, Send, Clock3
-} from "lucide-react";
-
-const CLASSROOM_URL = "https://classroom.google.com/h/st";
-const destinations = {
-  "Minecraft":"https://www.minecraft.net/","Roblox":"https://www.roblox.com/",
-  "Fortnite":"https://www.fortnite.com/","Rocket League":"https://www.rocketleague.com/",
-  "EA SPORTS FC Mobile":"https://www.ea.com/games/ea-sports-fc/fc-mobile",
-  "BUSSID":"https://www.maleo.web.id/","Counter-Strike":"https://www.counter-strike.net/",
-  "Free Fire":"https://ff.garena.com/","YouTube":"https://www.youtube.com/",
-  "Instagram":"https://www.instagram.com/","Discord":"https://discord.com/app",
-  "Reddit":"https://www.reddit.com/","Pinterest":"https://www.pinterest.com/",
-  "Spotify":"https://open.spotify.com/","Google Classroom":CLASSROOM_URL
+import {useState} from "react";
+import {Activity,ArrowUpRight,Bell,BookOpen,Check,ChevronRight,Clapperboard,ExternalLink,Gamepad2,GraduationCap,Grid2X2,Heart,LayoutDashboard,LockKeyhole,LogOut,Menu,MessageCircle,Plus,Search,Send,Settings,ShieldCheck,Sparkles,Users,X,UserRound,BarChart3,Flag,ClipboardCheck,FileText,Globe,Monitor,SlidersHorizontal,Bookmark} from "lucide-react";
+const CLASSROOM="https://classroom.google.com/h/st";
+const spaces=[
+{id:"games",title:"Game zone",desc:"Your games, all in one place.",icon:Gamepad2,tag:"PLAY"},
+{id:"social",title:"Social corner",desc:"Your communities, one click away.",icon:Users,tag:"CONNECT"},
+{id:"media",title:"Watchlist",desc:"Discover and organise what you want to watch.",icon:Clapperboard,tag:"DISCOVER"},
+{id:"study",title:"Study space",desc:"Make room for focused work.",icon:BookOpen,tag:"FOCUS"}
+];
+const data={
+games:[["Minecraft","Sandbox","https://www.minecraft.net/"],["Roblox","Platform","https://www.roblox.com/"],["Fortnite","Battle royale","https://www.fortnite.com/"],["Rocket League","Sports","https://www.rocketleague.com/"],["EA SPORTS FC Mobile","Sports","https://www.ea.com/games/ea-sports-fc/fc-mobile"],["BUSSID","Simulation","https://www.maleo.web.id/"],["Counter-Strike 2","FPS","https://www.counter-strike.net/"],["Free Fire","Battle royale","https://ff.garena.com/"],["Call of Duty","FPS","https://www.callofduty.com/"],["Assetto Corsa","Racing","https://assettocorsa.gg/"]],
+social:[["YouTube","Video","https://www.youtube.com/"],["Instagram","Social","https://www.instagram.com/"],["Discord","Community","https://discord.com/app"],["Reddit","Community","https://www.reddit.com/"],["Pinterest","Inspiration","https://www.pinterest.com/"],["Spotify","Music","https://open.spotify.com/"]],
+media:[["Movies","Movies","Discover films and maintain a watchlist."],["Series","Series","Track shows and episodes."],["Documentaries","Documentaries","Explore factual and educational viewing."],["Anime","Anime","Organise your anime watchlist."]]
 };
-const todayLabel = new Intl.DateTimeFormat("en", {
-  weekday:"long", month:"long", day:"numeric", year:"numeric"
-}).format(new Date()).toUpperCase();
-
-const modules = [
-  { id: "games", title: "Game zone", desc: "Your games, all in one place.", icon: Gamepad2, tint: "violet", tag: "PLAY", items: ["Minecraft", "Roblox", "Fortnite", "Rocket League", "EA SPORTS FC Mobile", "BUSSID", "Counter-Strike", "Free Fire"] },
-  { id: "social", title: "Social corner", desc: "Quick links to your communities.", icon: Users, tint: "pink", tag: "CONNECT", items: ["YouTube", "Instagram", "Discord", "Reddit", "Pinterest", "Spotify"] },
-  { id: "media", title: "Watchlist", desc: "Keep track of what you want to watch.", icon: Clapperboard, tint: "orange", tag: "DISCOVER", items: ["Movies", "Series", "Documentaries", "Anime", "My watchlist"] },
-  { id: "study", title: "Study space", desc: "Get back to class in one click.", icon: BookOpen, tint: "green", tag: "FOCUS", items: ["Google Classroom", "Study planner", "Useful resources"] }
-];
-
-const quickLinks = [
-  { name: "Google Classroom", url: CLASSROOM_URL, icon: GraduationCap, color: "green" },
-  { name: "YouTube", url: "https://www.youtube.com/", icon: Play, color: "red" },
-  { name: "Discord", url: "https://discord.com/app", icon: MessageCircle, color: "blue" },
-  { name: "Instagram", url: "https://www.instagram.com/", icon: Sparkles, color: "pink" }
-];
-
-function App() {
-  const [page, setPage] = useState("home");
-  const [query, setQuery] = useState("");
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [message, setMessage] = useState("");
-  const [sent, setSent] = useState([]);
-  const [notice, setNotice] = useState("");
-  const [showLogin, setShowLogin] = useState(false);
-  const [roll, setRoll] = useState("");
-  const [password, setPassword] = useState("");
-
-  const go = (next) => { setPage(next); setMobileOpen(false); setQuery(""); };
-  const announce = (text) => { setNotice(text); window.setTimeout(() => setNotice(""), 2800); };
-  const activeModule = modules.find(m => m.id === page);
-  const filtered = activeModule ? activeModule.items.filter(item => item.toLowerCase().includes(query.toLowerCase())) : [];
-
-  const submitPreview = (e) => {
-    e.preventDefault();
-    if (!/^\d{4}$/.test(roll) || password.length < 8) {
-      announce("Enter a four-digit roll number and an 8+ character password.");
-      return;
-    }
-    setShowLogin(false);
-    announce("Preview mode only — real sign-in will be connected to the backend.");
-    setRoll("");
-    setPassword("");
-  };
-
-  const navItems = [
-    { id: "home", label: "Home", icon: LayoutDashboard },
-    { id: "games", label: "Game zone", icon: Gamepad2 },
-    { id: "social", label: "Social", icon: Users },
-    { id: "media", label: "Watchlist", icon: Clapperboard },
-    { id: "study", label: "Study space", icon: BookOpen },
-    { id: "messages", label: "Messages", icon: MessageCircle },
-    { id: "admin", label: "Admin preview", icon: ShieldCheck }
-  ];
-
-  return (
-    <div className="app-shell">
-      <aside className={`sidebar ${mobileOpen ? "sidebar-open" : ""}`}>
-        <div className="brand-lockup">
-          <div className="brand-mark"><span>p</span><i /></div>
-          <div><div className="brand-name">pinapple<span>.</span></div><div className="brand-caption">YOUR SPACE, YOUR PACE</div></div>
-          <button className="icon-btn sidebar-close" onClick={() => setMobileOpen(false)} aria-label="Close menu"><X size={18}/></button>
-        </div>
-        <div className="workspace-label">WORKSPACE</div>
-        <nav className="side-nav">
-          {navItems.map(item => {
-            const Icon = item.icon;
-            return <button key={item.id} className={`nav-item ${page === item.id ? "active" : ""}`} onClick={() => go(item.id)}><Icon size={18}/><span>{item.label}</span>{item.id === "messages" && <span className="nav-dot"/>}</button>;
-          })}
-        </nav>
-        <div className="sidebar-bottom">
-          <div className="side-tip"><div className="tip-icon"><Zap size={16}/></div><strong>Make it count.</strong><p>A little progress every day adds up.</p></div>
-          <button className="profile-row" onClick={() => setShowLogin(true)}><div className="avatar">S</div><div className="profile-text"><strong>Student preview</strong><span>Not signed in</span></div><ChevronRight size={16}/></button>
-        </div>
-      </aside>
-
-      {mobileOpen && <button className="mobile-scrim" onClick={() => setMobileOpen(false)} aria-label="Close navigation"/>}
-      <main className="main-area">
-        <header className="topbar">
-          <button className="icon-btn mobile-menu" onClick={() => setMobileOpen(true)} aria-label="Open menu"><Menu size={20}/></button>
-          <div className="breadcrumb"><span>PINAPPLE</span><ChevronRight size={14}/><strong>{navItems.find(n => n.id === page)?.label || "Home"}</strong></div>
-          <div className="top-actions">
-            <span className="status-pill"><i/> EARLY ACCESS</span>
-            <button className="icon-btn" aria-label="Help" onClick={() => announce("PINAPPLE help centre is coming soon.")}><CircleHelp size={18}/></button>
-            <button className="avatar top-avatar" onClick={() => setShowLogin(true)} aria-label="Open sign in">S</button>
-          </div>
-        </header>
-
-        <div className="content-wrap">
-          {page === "home" && <Home go={go} openLogin={() => setShowLogin(true)} announce={announce}/>}
-          {activeModule && <section className="page-section">
-            <div className="eyebrow"><span className={`eyebrow-dot ${activeModule.tint}`}/>{activeModule.tag} / PINAPPLE</div>
-            <div className="page-heading"><div><h1>{activeModule.title}<span>.</span></h1><p>{activeModule.desc}</p></div><div className={`large-icon ${activeModule.tint}`}><activeModule.icon size={26}/></div></div>
-            <div className="catalog-toolbar"><div className="search-box"><Search size={17}/><input value={query} onChange={e => setQuery(e.target.value)} placeholder={`Search ${activeModule.title.toLowerCase()}...`}/><kbd>/</kbd></div><span className="result-count">{filtered.length} LINKS</span></div>
-            <div className="link-grid">{filtered.map((item, i) => <button className="link-card" key={item} onClick={() => destinations[item] ? window.open(destinations[item], "_blank", "noopener,noreferrer") : announce(`${item} is a catalogue placeholder. A verified source will be added later.`)}><div className={`link-card-icon ${activeModule.tint}`}>{item.slice(0,1)}</div><div className="link-card-copy"><strong>{item}</strong><span>{activeModule.id === "games" ? "Game listing · Official access" : "Quick access link"}</span></div><ArrowUpRight size={17}/></button>)}</div>
-            <div className="info-banner"><ShieldCheck size={18}/><span>PINAPPLE is a directory and student portal. Games and third-party services open through their official platforms; availability depends on your device and school policies.</span></div>
-          </section>}
-          {page === "messages" && <Messages message={message} setMessage={setMessage} sent={sent} setSent={setSent} announce={announce}/>}
-          {page === "admin" && <AdminPreview announce={announce}/>}
-        </div>
-        <footer className="footer"><span>© 2026 PINAPPLE</span><span>Built for the student community <span className="footer-heart">✳</span></span><a href={CLASSROOM_URL} target="_blank" rel="noreferrer">Open Classroom <ExternalLink size={12}/></a></footer>
-      </main>
-
-      {showLogin && <div className="modal-backdrop" onMouseDown={e => e.target === e.currentTarget && setShowLogin(false)}><div className="login-modal"><button className="modal-close icon-btn" onClick={() => setShowLogin(false)}><X size={18}/></button><div className="modal-brand"><div className="brand-mark small"><span>p</span><i/></div><span>pinapple<span className="accent">.</span></span></div><div className="eyebrow"><span className="eyebrow-dot green"/> STUDENT ACCESS</div><h2>Good to see you<span>.</span></h2><p className="modal-sub">Sign-in UI preview. Account verification is not connected yet.</p><form onSubmit={submitPreview}><label>FOUR-DIGIT ROLL NUMBER</label><input className="form-input" inputMode="numeric" maxLength={4} value={roll} onChange={e => setRoll(e.target.value.replace(/\D/g, "").slice(0,4))} placeholder="e.g. 1024" required/><label>PASSWORD</label><input className="form-input" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="At least 8 characters" required/><button className="primary-btn full" type="submit">Continue <ArrowUpRight size={17}/></button></form><div className="secure-note"><LockKeyhole size={14}/> Never use a real password in this preview.</div></div></div>}
-      {notice && <div className="toast"><Check size={16}/>{notice}</div>}
-    </div>
-  );
+const nav=[["home","Overview",LayoutDashboard],["games","Game zone",Gamepad2],["social","Social corner",Users],["media","Watchlist",Clapperboard],["study","Study space",BookOpen],["messages","Messages",MessageCircle],["profile","My profile",UserRound],["admin","Admin centre",ShieldCheck],["security","Security lab",ClipboardCheck],["settings","Settings",Settings]];
+function App(){
+const [page,setPage]=useState("home"),[mobile,setMobile]=useState(false),[query,setQuery]=useState(""),[notice,setNotice]=useState(""),[login,setLogin]=useState(false),[roll,setRoll]=useState(""),[password,setPassword]=useState(""),[demo,setDemo]=useState(false),[favs,setFavs]=useState(["Minecraft","YouTube"]),[watch,setWatch]=useState(["Movies","Anime"]),[tasks,setTasks]=useState([{id:1,title:"Review today's class notes",done:false},{id:2,title:"Finish mathematics practice",done:false},{id:3,title:"Plan tomorrow",done:true}]),[task,setTask]=useState(""),[draft,setDraft]=useState(""),[msgs,setMsgs]=useState(["Welcome to the PINAPPLE demo lounge."]),[settings,setSettings]=useState({announcements:true,quiet:false,compact:false}),[tests,setTests]=useState(["Demo role-access review"]);
+const say=(s)=>{setNotice(s);window.clearTimeout(window.__pinToast);window.__pinToast=window.setTimeout(()=>setNotice(""),2600)};
+const go=(p)=>{setPage(p);setMobile(false);setQuery("")};
+const space=spaces.find(x=>x.id===page),title=(nav.find(x=>x[0]===page)||[])[1]||"Overview";
+const signIn=(e)=>{e.preventDefault();if(!/^\d{4}$/.test(roll)||password.length<8){say("Use a four-digit demo roll number and an 8+ character demo password.");return;}setDemo(true);setLogin(false);setRoll("");setPassword("");say("Demo session started. No credentials were sent or saved.");};
+return <div className="app-shell">
+<aside className={"sidebar "+(mobile?"sidebar-open":"")}><div className="brand-lockup"><div className="brand-mark"><span>p</span><i/></div><div><div className="brand-name">pinapple<span>.</span></div><div className="brand-caption">YOUR SPACE, YOUR PACE</div></div><button className="icon-btn sidebar-close" onClick={()=>setMobile(false)}><X/></button></div>
+{["PORTAL","EXPLORE","COMMUNITY","MANAGE"].map((g,i)=><div className="nav-group" key={g}><div className="workspace-label">{g}</div><nav className="side-nav">{nav.filter((n)=>i===0?n[0]==="home":i===1?["games","social","media","study"].includes(n[0]):i===2?["messages","profile"].includes(n[0]):["admin","security","settings"].includes(n[0])).map(n=>{const I=n[2];return <button key={n[0]} className={"nav-item "+(page===n[0]?"active":"")} onClick={()=>go(n[0])}><I size={17}/><span>{n[1]}</span></button>})}</nav></div>)}
+<div className="sidebar-bottom"><div className="side-tip"><Sparkles size={16}/><strong> Make it count.</strong><p>A little progress every day adds up.</p></div><button className="profile-row" onClick={()=>demo?go("profile"):setLogin(true)}><div className="avatar">{demo?"D":"?"}</div><div className="profile-text"><strong>{demo?"Demo Student":"Guest preview"}</strong><span>{demo?"Demo session":"Not signed in"}</span></div><ChevronRight/></button></div></aside>
+{mobile&&<button className="mobile-scrim" onClick={()=>setMobile(false)} aria-label="Close menu"/>}
+<main className="main-area"><header className="topbar"><button className="icon-btn mobile-menu" onClick={()=>setMobile(true)}><Menu/></button><div className="breadcrumb"><span>PINAPPLE</span><ChevronRight size={14}/><strong>{title}</strong></div><div className="top-actions"><span className="status-pill"><i/>{demo?"DEMO SESSION":"DESIGN PREVIEW"}</span><button className="icon-btn" onClick={()=>say("Help centre will be connected later.")}><Bell/></button><button className="avatar top-avatar" onClick={()=>demo?go("profile"):setLogin(true)}>{demo?"D":"?"}</button></div></header>
+<div className="content-wrap">
+{page==="home"&&<Home go={go} open={()=>setLogin(true)} demo={demo}/>}
+{space&&<Catalogue space={space} items={data[page]||[]} query={query} setQuery={setQuery} favs={favs} setFavs={setFavs} watch={watch} setWatch={setWatch} say={say}/>}
+{page==="messages"&&<section className="page-section"><Heading title="Messages" desc="A friendly space to keep in touch." icon={MessageCircle}/><div className="admin-warning"><LockKeyhole/><div><strong>Local demonstration only</strong><span>These messages are not sent to other students. Real messaging requires authenticated accounts and moderation.</span></div></div><div className="panel chat-panel"><div className="panel-heading"><div><div className="eyebrow">PINAPPLE LOUNGE</div><h3>Demo conversation</h3></div><span className="coming-tag">LOCAL PREVIEW</span></div><div className="thread-body">{msgs.map((m,i)=><div className="bubble mine" key={i}>{m}<small>Demo user</small></div>)}</div><form className="thread-compose" onSubmit={e=>{e.preventDefault();if(!demo){say("Enter demo mode first.");return;}if(draft.trim()){setMsgs(v=>[...v,draft.trim()]);setDraft("");}}}><input value={draft} onChange={e=>setDraft(e.target.value)} placeholder="Write a message..." maxLength={500}/><button className="send-btn"><Send/></button></form></div></section>}
+{page==="study"&&<section className="page-section"><Heading title="Study space" desc="Plan your work and get back to class." icon={BookOpen}/><a className="study-classroom" href={CLASSROOM} target="_blank" rel="noreferrer"><GraduationCap/><span><strong>Google Classroom</strong><small>Open your classes in the official Google service.</small></span><ArrowUpRight/></a><div className="panel tasks-panel"><div className="panel-heading"><div><div className="eyebrow">PERSONAL PLANNER</div><h3>Your tasks</h3></div><span className="result-count">{tasks.filter(t=>t.done).length}/{tasks.length} COMPLETE</span></div><form className="task-add" onSubmit={e=>{e.preventDefault();if(task.trim()){setTasks(v=>[...v,{id:Date.now(),title:task.trim(),done:false}]);setTask("");}}}><input value={task} onChange={e=>setTask(e.target.value)} placeholder="Add a study task..."/><button className="send-btn"><Plus/></button></form>{tasks.map(t=><label className="task-row" key={t.id}><input type="checkbox" checked={t.done} onChange={()=>setTasks(v=>v.map(x=>x.id===t.id?{...x,done:!x.done}:x))}/><span className={t.done?"task-done":""}>{t.title}</span><small>{t.done?"DONE":"TO DO"}</small></label>)}</div></section>}
+{page==="profile"&&<section className="page-section"><Heading title="My profile" desc="Your PINAPPLE identity and saved items." icon={UserRound}/><div className="profile-hero panel"><div className="profile-big-avatar">{demo?"D":"?"}</div><div><div className="eyebrow">STUDENT PROFILE · DEMO</div><h2>{demo?"Demo Student":"Guest preview"}</h2><p>{demo?"Fictional account · no student directory connected":"Enter demo mode to preview a student profile."}</p></div><span className="role-pill">{demo?"STUDENT":"GUEST"}</span></div><div className="profile-stats"><Stat icon={Heart} label="Favourites" value={favs.length}/><Stat icon={Bookmark} label="Watchlist" value={watch.length}/><Stat icon={Grid2X2} label="Portal spaces" value="4"/></div>{demo&&<button className="outline-btn" onClick={()=>{setDemo(false);go("home");say("Demo session ended.");}}><LogOut size={15}/> End demo session</button>}</section>}
+{page==="admin"&&<section className="page-section"><Heading title="Admin centre" desc="Platform health, student support and moderation." icon={ShieldCheck}/><div className="admin-warning"><LockKeyhole/><div><strong>Administrator preview — no real records connected.</strong><span>Production access must be enforced by the backend for approved staff accounts.</span></div></div><div className="stats-grid"><Stat icon={Users} label="Registered accounts" value="—"/><Stat icon={Activity} label="Active sessions" value="—"/><Stat icon={BarChart3} label="Catalogue visits" value="—"/><Stat icon={Flag} label="Reports to review" value="—"/></div><div className="admin-grid"><div className="panel"><h3>Student directory</h3><p className="muted-copy">The roll-number/full-name directory will be securely imported into SQL after school approval. It will never be shipped to frontend code.</p><span className="role-pill">DATABASE PENDING</span></div><div className="panel"><h3>Moderation queue</h3><p className="muted-copy">Reports, account actions and audit history will connect during backend development.</p><span className="role-pill">BACKEND PENDING</span></div></div></section>}
+{page==="security"&&<section className="page-section"><Heading title="Security lab" desc="Document approved testing, evidence and remediation." icon={ClipboardCheck}/><div className="admin-warning"><LockKeyhole/><div><strong>Controlled environment only</strong><span>Only explicitly approved lab assets, test accounts and written scope. No live school-network bypass or unapproved scanning.</span></div></div><div className="panel"><div className="eyebrow">ADD TEST PLAN</div><form className="task-add" onSubmit={e=>{e.preventDefault();const v=e.currentTarget.elements.test.value.trim();if(v){setTests(x=>[v,...x]);e.currentTarget.reset();}}}><input name="test" placeholder="e.g. Review role-based page access"/><button className="send-btn"><Plus/></button></form><div className="eyebrow">LOCAL TEST REGISTER</div>{tests.map((t,i)=><div className="test-row" key={i}><FileText/><span><strong>{t}</strong><small>Local mock environment · Planned</small></span><span className="role-pill">PLANNED</span></div>)}</div></section>}
+{page==="settings"&&<section className="page-section"><Heading title="Settings" desc="Shape your portal experience." icon={SlidersHorizontal}/><div className="panel settings-panel">{[["announcements","Portal announcements","Notices about portal updates."],["quiet","Quiet hours","Mute optional notifications."],["compact","Compact layout","Denser spacing in supported lists."]].map(([k,t,d])=><div className="setting-row" key={k}><span><strong>{t}</strong><small>{d}</small></span><button className={settings[k]?"toggle on":"toggle"} onClick={()=>setSettings(v=>({...v,[k]:!v[k]}))} aria-pressed={settings[k]}><i/></button></div>)}</div><div className="info-banner"><ShieldCheck/><span>Student information will be handled through approved backend storage and school privacy rules.</span></div></section>}
+</div><footer className="footer"><span>© 2026 PINAPPLE</span><span>Built for the student community ✳</span><a href={CLASSROOM} target="_blank" rel="noreferrer">Open Classroom <ExternalLink size={12}/></a></footer></main>
+{login&&<div className="modal-backdrop" onMouseDown={e=>e.target===e.currentTarget&&setLogin(false)}><div className="login-modal"><button className="modal-close icon-btn" onClick={()=>setLogin(false)}><X/></button><div className="modal-brand"><div className="brand-mark small"><span>p</span><i/></div><span>pinapple<span className="accent">.</span></span></div><div className="eyebrow">DEMO STUDENT ACCESS</div><h2>Welcome back<span>.</span></h2><p className="modal-sub">This is a frontend demo. No account is verified and no password is stored or transmitted.</p><form onSubmit={signIn}><label>FOUR-DIGIT DEMO ROLL NUMBER</label><input className="form-input" inputMode="numeric" maxLength={4} value={roll} onChange={e=>setRoll(e.target.value.replace(/\D/g,"").slice(0,4))} placeholder="e.g. 1024" required/><label>DEMO PASSWORD</label><input className="form-input" type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="8 characters or more" required/><button className="primary-btn full">Enter demo <ArrowUpRight/></button></form><div className="secure-note"><LockKeyhole/> Use fictional credentials only.</div></div></div>}
+{notice&&<div className="toast"><Check size={16}/>{notice}</div>}</div>;
 }
-
-function Home({ go, openLogin, announce }) {
-  return <div className="home-page">
-    <div className="welcome-row"><div><div className="eyebrow"><span className="eyebrow-dot green"/> {todayLabel}</div><h1>Your space.<br/><span>Your pace.</span></h1><p className="welcome-copy">A considered space for your everyday essentials — study, community, discovery and downtime.</p><div className="hero-actions"><button className="primary-btn" onClick={openLogin}>Student sign in <ArrowUpRight size={17}/></button><a className="text-link" href={CLASSROOM_URL} target="_blank" rel="noreferrer">Open Google Classroom <ExternalLink size={14}/></a></div></div><div className="hero-art"><div className="orbit orbit-one"/><div className="orbit orbit-two"/><div className="hero-orb"><span>p</span><i/></div><div className="float-chip chip-top"><Sparkles size={14}/> YOUR CORNER OF THE INTERNET</div><div className="float-chip chip-bottom"><span className="pulse"/> READY WHEN YOU ARE</div><div className="tiny-star star-one">✳</div><div className="tiny-star star-two">✦</div></div></div>
-    <div className="section-title-row"><div><div className="eyebrow">EXPLORE</div><h2>Make today yours.</h2></div><span className="muted-count">04 SPACES</span></div>
-    <div className="module-grid">{modules.map((m, i) => {const Icon=m.icon;return <button className={`module-card ${m.tint}`} key={m.id} onClick={() => go(m.id)}><div className="module-card-top"><div className="module-icon"><Icon size={20}/></div><span>{m.tag}</span></div><div className="module-card-bottom"><div><h3>{m.title}</h3><p>{m.desc}</p></div><div className="round-arrow"><ArrowUpRight size={18}/></div></div><div className="card-glow"/></button>})}</div>
-    <div className="lower-grid"><section className="panel quick-panel"><div className="panel-heading"><div><div className="eyebrow">SHORTCUTS</div><h3>Jump right in</h3></div><Grid2X2 size={18}/></div><div className="quick-list">{quickLinks.map(link=>{const Icon=link.icon;return <a key={link.name} href={link.url} target="_blank" rel="noreferrer" className="quick-link"><span className={`quick-icon ${link.color}`}><Icon size={17}/></span><strong>{link.name}</strong><ArrowUpRight size={15}/></a>})}</div></section><section className="panel focus-panel"><div className="panel-heading"><div><div className="eyebrow">A LITTLE REMINDER</div><h3>Keep your balance.</h3></div><div className="focus-spark"><Sparkles size={18}/></div></div><p>Make room for fun, stay on top of your work, and look out for each other. That's the PINAPPLE way.</p><button className="outline-btn" onClick={()=>go("study")}>Visit study space <ChevronRight size={16}/></button></section></div>
-    <div className="emergency-strip"><div className="emergency-icon"><GraduationCap size={19}/></div><div><strong>Need your classroom?</strong><span>Your classes are one click away.</span></div><a href={CLASSROOM_URL} target="_blank" rel="noreferrer" className="emergency-link">Open Classroom <ArrowUpRight size={16}/></a></div>
-    <div className="prototype-note"><Activity size={15}/> <span>Prototype environment · Sign-in, messaging and admin analytics are visual previews only. No student data is collected or stored.</span></div>
-  </div>;
-}
-
-function Messages({ message, setMessage, sent, setSent, announce }) {
-  return <section className="page-section"><div className="eyebrow"><span className="eyebrow-dot pink"/> CONNECT / PINAPPLE</div><div className="page-heading"><div><h1>Messages<span>.</span></h1><p>A friendly space to keep in touch.</p></div><div className="large-icon pink"><MessageCircle size={26}/></div></div><div className="message-layout"><div className="panel message-panel"><div className="panel-heading"><div><div className="eyebrow">DEMO CONVERSATION</div><h3>PINAPPLE lounge</h3></div><span className="coming-tag">PREVIEW</span></div><div className="chat-empty"><div className="chat-bubble-icon"><MessageCircle size={22}/></div><strong>Say hello to the room.</strong><span>This local preview doesn't send messages to other people.</span></div>{sent.map((s,i)=><div className="own-message" key={i}>{s}</div>)}<form className="chat-compose" onSubmit={e=>{e.preventDefault();if(message.trim()){setSent([...sent,message.trim()]);setMessage("");announce("Message added to this local preview only.");}}}><input value={message} onChange={e=>setMessage(e.target.value)} placeholder="Write a preview message..." maxLength={300}/><button className="send-btn" type="submit"><Send size={17}/></button></form></div><div className="panel privacy-panel"><ShieldCheck size={21}/><h3>Good conversations need good boundaries.</h3><p>Before real messaging launches, PINAPPLE will need authenticated accounts, reporting, blocking, rate limits, and clear moderation rules.</p></div></div></section>;
-}
-
-function AdminPreview({ announce }) {
-  return <section className="page-section"><div className="eyebrow"><span className="eyebrow-dot orange"/> MANAGEMENT / PINAPPLE</div><div className="page-heading"><div><h1>Admin overview<span>.</span></h1><p>A transparent view of platform activity.</p></div><div className="large-icon orange"><ShieldCheck size={26}/></div></div><div className="admin-warning"><LockKeyhole size={18}/><div><strong>Preview only — no student records are connected.</strong><span>Real administrator access must be restricted to approved staff accounts.</span></div></div><div className="stats-grid">{[{label:"Registered accounts",value:"—",icon:Users},{label:"Active sessions",value:"—",icon:Activity},{label:"Module visits",value:"—",icon:Grid2X2},{label:"Messages reported",value:"—",icon:MessageCircle}].map(s=>{const Icon=s.icon;return <div className="stat-card" key={s.label}><Icon size={18}/><span>{s.label}</span><strong>{s.value}</strong><small>Not connected</small></div>})}</div><div className="panel admin-panel"><div className="panel-heading"><div><div className="eyebrow">AUDIT LOG</div><h3>Recent platform activity</h3></div><Clock3 size={18}/></div><div className="empty-state">Activity will appear here after the backend and consent-aware event logging are implemented.</div></div><div className="info-banner"><ShieldCheck size={18}/><span>Admin analytics should record only what is needed for platform operations. Passwords must never be visible, and private message contents should not be exposed in routine analytics.</span></div></section>;
-}
-
+function Heading({title,desc,icon:Icon}){return <><div className="eyebrow">PINAPPLE / WORKSPACE</div><div className="page-heading"><div><h1>{title}<span>.</span></h1><p>{desc}</p></div><div className="large-icon green"><Icon size={26}/></div></div></>}
+function Stat({icon:Icon,label,value}){return <div className="stat-card"><Icon/><span>{label}</span><strong>{value}</strong><small>Demo data</small></div>}
+function Home({go,open,demo}){return <div className="home-page"><div className="welcome-row"><div><div className="eyebrow"><span className="eyebrow-dot green"/>{new Intl.DateTimeFormat("en",{weekday:"long",month:"long",day:"numeric",year:"numeric"}).format(new Date()).toUpperCase()}</div><h1>{demo?<>Welcome back,<br/><span>Student.</span></>:<>Your space.<br/><span>Your pace.</span></>}</h1><p className="welcome-copy">A considered space for your everyday essentials — study, community, discovery and downtime.</p><div className="hero-actions"><button className="primary-btn" onClick={open}>{demo?"Demo session active":"Student sign in"} <ArrowUpRight/></button><a className="text-link" href={CLASSROOM} target="_blank" rel="noreferrer">Open Google Classroom <ExternalLink/></a></div></div><div className="hero-art"><div className="orbit orbit-one"/><div className="orbit orbit-two"/><div className="hero-orb"><span>p</span><i/></div><div className="float-chip chip-top"><Sparkles/> YOUR CORNER OF THE INTERNET</div><div className="float-chip chip-bottom"><span className="pulse"/> READY WHEN YOU ARE</div><div className="tiny-star star-one">✳</div><div className="tiny-star star-two">✦</div></div></div><div className="section-title-row"><div><div className="eyebrow">YOUR WORKSPACE</div><h2>Make today yours.</h2></div><span className="muted-count">04 SPACES</span></div><div className="module-grid">{spaces.map(m=>{const I=m.icon;return <button className={"module-card "+(m.id==="games"?"violet":m.id==="social"?"pink":m.id==="media"?"orange":"green")} key={m.id} onClick={()=>go(m.id)}><div className="module-card-top"><div className="module-icon"><I/></div><span>{m.tag}</span></div><div className="module-card-bottom"><div><h3>{m.title}</h3><p>{m.desc}</p></div><div className="round-arrow"><ArrowUpRight/></div></div><div className="card-glow"/></button>})}</div><div className="lower-grid"><section className="panel"><div className="panel-heading"><div><div className="eyebrow">SHORTCUTS</div><h3>Jump right in</h3></div><Grid2X2/></div><div className="quick-list">{[["Google Classroom",CLASSROOM,GraduationCap],["YouTube","https://www.youtube.com/",ArrowUpRight],["Discord","https://discord.com/app",MessageCircle],["Instagram","https://www.instagram.com/",Users]].map(([n,u,I])=><a className="quick-link" key={n} href={u} target="_blank" rel="noreferrer"><span className="quick-icon green"><I/></span><strong>{n}</strong><ArrowUpRight/></a>)}</div></section><section className="panel focus-panel"><div className="eyebrow">THE PINAPPLE WAY</div><h3>Keep your balance.</h3><p>Make room for fun, stay on top of your work, and look out for each other.</p><button className="outline-btn" onClick={()=>go("study")}>Visit study space <ChevronRight/></button></section></div><div className="prototype-note"><Activity/><span>Frontend prototype · Accounts, messages and analytics use demonstration data only.</span></div></div>}
+function Catalogue({space,items,query,setQuery,favs,setFavs,watch,setWatch,say}){const [cat,setCat]=useState("All");const isMedia=space.id==="media";const cats=["All",...new Set(items.map(x=>x[1]))];const filtered=items.filter(x=>(x[0].toLowerCase().includes(query.toLowerCase())||x[1].toLowerCase().includes(query.toLowerCase()))&&(cat==="All"||x[1]===cat));const I=space.icon;return <section className="page-section"><div className="eyebrow">{space.tag} / PINAPPLE</div><div className="page-heading"><div><h1>{space.title}<span>.</span></h1><p>{space.desc}</p></div><div className="large-icon green"><I/></div></div><div className="catalog-toolbar"><div className="search-box"><Search/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder={"Search "+space.title.toLowerCase()+"..."}/><kbd>/</kbd></div><span className="result-count">{filtered.length} ITEMS</span></div>{!isMedia&&<div className="category-row">{cats.map(c=><button className={cat===c?"category-chip selected":"category-chip"} key={c} onClick={()=>setCat(c)}>{c}</button>)}</div>}{isMedia&&<div className="watchlist-summary"><Bookmark/><span><strong>{watch.length} saved items</strong><small>Your personal discovery list</small></span></div>}<div className="catalog-card-grid">{filtered.map(([name,category,url])=>{const saved=isMedia?watch.includes(name):favs.includes(name);return <article className="catalog-card" key={name}><div className="catalog-card-art"><span className="catalog-monogram">{name[0]}</span><span className="catalog-category">{category}</span></div><div className="catalog-card-body"><div><h3>{name}</h3><p>{isMedia?url:"Official "+category.toLowerCase()+" destination"}</p></div><div className="catalog-card-actions"><button className={saved?"mini-action saved":"mini-action"} onClick={()=>isMedia?setWatch(v=>saved?v.filter(x=>x!==name):[...v,name]):setFavs(v=>saved?v.filter(x=>x!==name):[...v,name])} aria-label="Toggle favourite"><Heart fill={saved?"currentColor":"none"}/></button>{isMedia?<button className="small-outline" onClick={()=>say("A permitted media discovery source will be connected later.")}>Explore <ArrowUpRight/></button>:<a className="small-outline" href={url} target="_blank" rel="noopener noreferrer">Official site <ArrowUpRight/></a>}</div></div></article>})}</div>{filtered.length===0&&<div className="empty-panel"><Search/><strong>No matching items</strong><span>Try another search or category.</span></div>}<div className="info-banner"><ShieldCheck/><span>PINAPPLE is a directory, not a proxy. Third-party services open on their official platforms; availability and school policies apply.</span></div></section>}
 export default App;
