@@ -9,20 +9,20 @@ A school-focused student portal being developed for the GSIS Ooty student commun
 ## Current stack
 - React 18 + Vite 6
 - Node.js API
-- PostgreSQL (Neon Free)
+- PostgreSQL (Supabase Free)
 - bcrypt password hashing and database-backed sessions
 - GitHub for source control and CI
 - Render for frontend and API hosting
 
 ## Database setup
-1. Create a free PostgreSQL project at https://neon.tech/.
-2. Copy the Neon connection string and add it to the Render `pinapple-api` service as the secret environment variable `DATABASE_URL`.
+1. Create a free PostgreSQL project at https://supabase.com/dashboard.
+2. In Supabase, click **Connect**, choose **Session pooler**, replace the password placeholder with your database password (URL-encode reserved characters), and add the full connection string to the Render `pinapple-api` service as the secret environment variable `DATABASE_URL`.
 3. Set `FRONTEND_ORIGIN` to the exact public URL of the PINAPPLE frontend.
 4. Set a long, random `PINAPPLE_BOOTSTRAP_KEY` in the API service environment. Keep it private.
 5. Redeploy the API. On startup, it creates the required PostgreSQL tables and indexes automatically.
 6. Confirm the API health endpoint reports `"database":"connected"`.
 
-Never commit the Neon connection string, bootstrap key, invitation codes or student records to GitHub. The schema is in `db/schema.sql` and is also applied by the API at startup.
+Never commit the Supabase connection string, bootstrap key, invitation codes or student records to GitHub. The schema is in `db/schema.sql` and is also applied by the API at startup.
 
 ## First student setup
 After the database is connected and the API is healthy:
@@ -42,7 +42,7 @@ The bootstrap route is one-time and does not accept password values. Passwords a
 - Public self-registration is disabled. Accounts are created only through the protected initial bootstrap and invitation flow.
 
 ## Current limitations
-- The database schema and authentication API are implemented, but no Neon database is connected until its connection string is added in Render.
+- The database schema and authentication API are implemented, but no Supabase database is connected until its connection string is added in Render.
 - No real student records or passwords have been imported.
 - Messaging, moderation and analytics are not yet backed by PostgreSQL.
 
