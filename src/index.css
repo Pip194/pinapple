@@ -156,3 +156,40 @@ button:focus-visible,a:focus-visible,input:focus-visible {
 @media(max-width:900px){.auth-layout{grid-template-columns:1fr 400px;gap:30px}.auth-story h1{font-size:56px}.auth-orbit-art{transform:scale(.82);transform-origin:left center}}
 @media(max-width:700px){.auth-screen{padding:19px 18px 15px}.auth-layout{display:flex;flex-direction:column;gap:26px;padding:38px 0 30px}.auth-story{min-height:0;width:100%}.auth-story h1{font-size:47px;letter-spacing:-2.5px;margin:17px 0 10px}.auth-story>p{font-size:11px}.auth-orbit-art,.auth-story-foot{display:none}.auth-card{width:100%;box-sizing:border-box;padding:23px 20px}.auth-card-head h2{font-size:25px}.auth-footer span:nth-child(2){display:none}}
 @media(max-width:380px){.auth-top-note{font-size:7px}.password-rules{grid-template-columns:1fr}.auth-card{padding:20px 16px}}
+
+/* PINAPPLE brand system: tropical botanical, pineapple gold and deep forest */
+:root{--bg:#09120f;--panel:#111e18;--panel2:#17261d;--line:rgba(202,218,177,.14);--muted:#9ba995;--green:#c5dc76;--purple:#8caa70;--pink:#d99a70;--orange:#efbd58}
+body{background:radial-gradient(ellipse at 78% -12%,rgba(197,220,118,.11),transparent 36%),radial-gradient(ellipse at 12% 80%,rgba(65,103,58,.15),transparent 42%),#09120f}
+.sidebar{background:linear-gradient(180deg,#0d1b14,#0a1510)}
+.topbar{background:#09120fee}
+.nav-item.active{background:#c5dc7617;color:#d5e99a}
+.brand-mark{background:linear-gradient(145deg,#f7d779,#c5dc76);color:#213018;box-shadow:0 5px 24px #e5b94735}
+.side-tip{background:linear-gradient(135deg,#c5dc7612,#e6ad3c0a)}
+.module-card.violet .module-icon{background:#8caa7020;color:#b5d18b}
+.module-card.pink .module-icon{background:#d99a7020;color:#e6ad83}
+.module-card.orange .module-icon{background:#efbd581c;color:#f1c96e}
+.module-card.green .module-icon{background:#c5dc761c;color:#d5e99a}
+.catalog-card{background:linear-gradient(145deg,#17271e,#101c15)}
+.catalog-card-art{background:radial-gradient(circle at 50% 45%,#efbd5830,transparent 60%),linear-gradient(135deg,#243b2a,#132319)}
+.catalog-monogram{color:#efc65e;text-shadow:0 8px 30px #efbd5845}
+.category-chip.selected{background:#c5dc7615;border-color:#c5dc7655;color:#d5e99a}
+.mini-action.saved{color:#efbd58;border-color:#efbd5860;background:#efbd5810}
+.auth-screen{background:radial-gradient(ellipse at 78% 42%,#9a71251b,transparent 36%),radial-gradient(ellipse at 10% 88%,#426b3c24,transparent 40%),#09120f}
+.auth-screen:before{background:radial-gradient(circle,#dcae3a20,transparent 68%)}
+.auth-pineapple-backdrop{position:absolute;z-index:0;pointer-events:none;width:clamp(280px,38vw,500px);height:auto;right:clamp(5px,5vw,85px);top:50%;transform:translateY(-50%) rotate(7deg);opacity:.26;filter:drop-shadow(0 35px 65px #d5a5382b)}
+.auth-pineapple-backdrop svg{display:block;width:100%;height:auto;overflow:visible}
+.auth-top,.auth-layout,.auth-footer{position:relative;z-index:1}
+.auth-card{background:linear-gradient(150deg,rgba(24,39,29,.94),rgba(13,27,19,.96));border-color:#d6bd6d30;backdrop-filter:blur(15px);box-shadow:0 28px 100px #0009,0 0 55px #d4a63b0b}
+.auth-brand-mark{background:linear-gradient(145deg,#f7d779,#c5dc76);color:#203019}
+.auth-live-dot{background:#c5dc76;box-shadow:0 0 12px #c5dc7688}
+.auth-tabs button.selected,.auth-submit{background:linear-gradient(110deg,#f1cc68,#c5dc76);color:#1b2817}
+.auth-tabs{background:#09160f;border-color:#d6bd6d1e}
+.auth-form .form-input{background:#0b1811;border-color:#334735}
+.auth-form .form-input:focus{border-color:#c5dc7688;box-shadow:0 0 0 3px #c5dc760d}
+.auth-forgot button,.auth-switch button{color:#d6e895}
+.auth-legal svg{color:#c5dc76}
+.auth-story h1 span,.auth-card h2 span{color:#efc65e}
+.auth-orbit{border-color:#efc65e35}
+.auth-orbit-core{background:linear-gradient(145deg,#f8d978,#c5dc76);box-shadow:0 20px 70px #d9ad4c32}
+.auth-float{background:#14251a;border-color:#d9c16b2c}
+@media(max-width:700px){.auth-pineapple-backdrop{width:300px;right:-80px;top:190px;opacity:.16;transform:rotate(8deg)}}
