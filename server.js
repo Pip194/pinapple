@@ -113,7 +113,7 @@ function cookie(value, maxAge) {
 }
 function requireDatabase(res) {
   if (!pool || !databaseReady) {
-    send(res, 503, { error: "Student accounts are not configured yet. Connect the Neon DATABASE_URL in Render and redeploy." });
+    send(res, 503, { error: "Student accounts are not configured yet. Connect the Supabase DATABASE_URL in Render and redeploy." });
     return false;
   }
   return true;
