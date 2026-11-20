@@ -17,6 +17,26 @@ const server = http.createServer(async (req, res) => {
   if (req.method === "OPTIONS") { res.writeHead(204); return res.end(); }
 
   const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
+  const imageMatch = url.pathname.match(/^\/api\/tmdb\/image\/(w[0-9]+|original)\/([A-Za-z0-9_-]+\.(?:jpg|jpeg|png|webp))$/i);
+  if (imageMatch && req.method === "GET") {
+    try {
+      const imageUrl = `https://image.tmdb.org/t/p/${imageMatch[1]}/${imageMatch[2]}`;
+      const upstream = await fetch(imageUrl, { signal: AbortSignal.timeout(12000) });
+      if (!upstream.ok) {
+        res.writeHead(upstream.status, { "Content-Type": "application/json" });
+        return res.end(JSON.stringify({ error: "Image source unavailable" }));
+      }
+      const image = Buffer.from(await upstream.arrayBuffer());
+      res.writeHead(200, {
+        "Content-Type": upstream.headers.get("content-type") || "image/jpeg",
+        "Cache-Control": "public, max-age=86400"
+      });
+      return res.end(image);
+    } catch {
+      res.writeHead(502, { "Content-Type": "application/json" });
+      return res.end(JSON.stringify({ error: "Image source temporarily unavailable" }));
+    }
+  }
   if (url.pathname === "/health") {
     res.writeHead(200, { "Content-Type": "application/json" });
     return res.end(JSON.stringify({ ok: true, service: "pinApple Cinema API" }));
