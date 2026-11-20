@@ -137,9 +137,97 @@ const server = http.createServer(async (req, res) => {
     return send(res, 200, { ok: true, service: "PINAPPLE API", database: databaseReady ? "connected" : "not_configured" });
   }
 
+  if (url.pathname === "/api/bootstrap" && req.method === "POST") {
+    if (!requireDatabase(res)) return;
+    const supplied = req.headers["x-pinapple-bootstrap-key"];
+    if (!process.env.PINAPPLE_BOOTSTRAP_KEY || !supplied || supplied !== process.env.PINAPPLE_BOOTSTRAP_KEY) {
+      return send(res, 403, { error: "Bootstrap is not authorised." });
+    }
+    try {
+      const count = await pool.query("SELECT COUNT(*)::int AS count FROM students");
+      if (count.rows[0].count !== 0) return send(res, 409, { error: "Initial setup has already been completed." });
+      const body = await readBody(req);
+      if (!Array.isArray(body.students) || body.students.length < 1 || body.students.length > 700) {
+        return send(res, 400, { error: "Provide between 1 and 700 student records." });
+      }
+      const seen = new Set();
+      for (const student of body.students) {
+        const roll = String(student.rollNumber || "");
+        const name = String(student.fullName || "").trim();
+        const role = student.role === "admin" ? "admin" : "student";
+        if (!/^\\d{4}$/.test(roll) || !name || name.length > 120 || seen.has(roll)) {
+          return send(res, 400, { error: "Each student needs a unique four-digit roll number and a name of up to 120 characters." });
+        }
+        seen.add(roll);
+      }
+      const client = await pool.connect();
+      const invitations = [];
+      try {
+        await client.query("BEGIN");
+        for (const student of body.students) {
+          const roll = String(student.rollNumber);
+          const name = String(student.fullName).trim();
+          const role = student.role === "admin" ? "admin" : "student";
+          const inserted = await client.query(
+            "INSERT INTO students (roll_number, full_name, role) VALUES ($1,$2,$3) RETURNING id",
+            [roll, name, role]
+          );
+          const inviteCode = crypto.randomBytes(24).toString("base64url");
+          await client.query(
+            "INSERT INTO student_invites (student_id, token_hash, expires_at) VALUES ($1,$2,NOW() + INTERVAL '7 days')",
+            [inserted.rows[0].id, hashToken(inviteCode)]
+          );
+          invitations.push({ rollNumber: roll, fullName: name, role, inviteCode });
+        }
+        await client.query("COMMIT");
+      } catch (error) {
+        await client.query("ROLLBACK");
+        throw error;
+      } finally {
+        client.release();
+      }
+      return send(res, 201, { message: "Initial student records created. Save each invitation code securely; it is shown only once.", invitations });
+    } catch (error) {
+      console.error("Initial setup failed:", error.message);
+      return send(res, 500, { error: "Initial student setup failed. No credentials were returned." });
+    }
+  }
+
   if (url.pathname.startsWith("/api/auth/")) {
     if (!requireDatabase(res)) return;
     try {
+      if (url.pathname === "/api/auth/activate" && req.method === "POST") {
+        const body = await readBody(req);
+        const roll = String(body.rollNumber || "").trim();
+        const inviteCode = String(body.inviteCode || "");
+        const password = String(body.password || "");
+        if (!/^\\d{4}$/.test(roll) || inviteCode.length < 20 || password.length < 10 ||
+            !/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/\\d/.test(password) || !/[^A-Za-z0-9]/.test(password)) {
+          return send(res, 400, { error: "Use your four-digit roll number, valid invitation code, and a strong password (10+ characters with upper/lowercase, a number and a symbol)." });
+        }
+        const invite = await pool.query(
+          `SELECT i.id AS invite_id, st.id AS student_id
+           FROM student_invites i JOIN students st ON st.id = i.student_id
+           WHERE st.roll_number = $1 AND i.token_hash = $2 AND i.used_at IS NULL AND i.expires_at > NOW() AND st.is_active = TRUE`,
+          [roll, hashToken(inviteCode)]
+        );
+        if (!invite.rows[0]) return send(res, 400, { error: "Invitation is invalid, expired or already used." });
+        const passwordHash = await bcrypt.hash(password, 12);
+        const client = await pool.connect();
+        try {
+          await client.query("BEGIN");
+          await client.query("UPDATE students SET password_hash = $1, updated_at = NOW() WHERE id = $2", [passwordHash, invite.rows[0].student_id]);
+          await client.query("UPDATE student_invites SET used_at = NOW() WHERE id = $1", [invite.rows[0].invite_id]);
+          await client.query("COMMIT");
+        } catch (error) {
+          await client.query("ROLLBACK");
+          throw error;
+        } finally {
+          client.release();
+        }
+        return send(res, 200, { ok: true, message: "Account activated. You can now sign in." });
+      }
+
       if (url.pathname === "/api/auth/login" && req.method === "POST") {
         const ip = req.headers["x-forwarded-for"]?.split(",")[0]?.trim() || req.socket.remoteAddress || "unknown";
         if (!rateLimit("login:" + ip)) return send(res, 429, { error: "Too many sign-in attempts. Please wait 15 minutes." });
