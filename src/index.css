@@ -339,3 +339,7 @@ body{background:radial-gradient(ellipse at 78% -12%,rgba(197,220,118,.11),transp
 .pin-loading-sound{margin-top:18px;padding:9px 13px;border:1px solid rgba(197,242,138,.25);border-radius:999px;background:rgba(197,242,138,.07);color:#c5f28a;font-size:9px;font-weight:800;letter-spacing:1.3px;cursor:pointer;transition:background .2s,border-color .2s}.pin-loading-sound:hover{background:rgba(197,242,138,.14);border-color:rgba(197,242,138,.5)}.pin-loading-sound:focus-visible{outline:2px solid #c5f28a;outline-offset:3px}
 @keyframes pin-loading-sweep{from{transform:translateX(-110%)}to{transform:translateX(250%)}}
 @media(prefers-reduced-motion:reduce){.pin-loading-fruit,.pin-loading-dot,.pin-trivia p,.pin-loading-track span{animation:none!important}}
+
+/* Game Zone thumbnails */
+.game-logo-thumbnail{object-fit:contain!important;padding:18px;background:radial-gradient(circle at center,#c5f28a20,transparent 68%),linear-gradient(135deg,#192538,#101724);}
+.game-art-fallback:after{content:"🎮";font-size:42px;color:#c5f28a;text-shadow:0 8px 30px #c5f28a35;}
