@@ -144,7 +144,7 @@ const server = http.createServer(async (req, res) => {
     res.setHeader("Vary", "Origin");
     res.setHeader("Access-Control-Allow-Credentials", "true");
   }
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, x-pinapple-bootstrap-key");
   if (req.method === "OPTIONS") { res.writeHead(204); return res.end(); }
 
