@@ -174,6 +174,28 @@ const server = http.createServer(async (req, res) => {
 
   const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
 
+  // Serve the Eaglercraft HTML with an explicit HTML content type. Some storage
+  // uploads are tagged as text/plain, which makes browsers display the source.
+  if (url.pathname === "/api/games/eaglercraft" && req.method === "GET") {
+    try {
+      const upstream = await fetch("https://offgeygyhxkjsbwvydlz.supabase.co/storage/v1/object/public/pinapple-games/Eaglercraft_1%20(2).12_Offline_en_US.html", {
+        headers: { Accept: "text/html,application/xhtml+xml,*/*" },
+        signal: AbortSignal.timeout(30000)
+      });
+      if (!upstream.ok) return send(res, upstream.status, { error: "Eaglercraft game file could not be loaded." });
+      const game = Buffer.from(await upstream.arrayBuffer());
+      res.writeHead(200, {
+        "Content-Type": "text/html; charset=utf-8",
+        "Content-Disposition": "inline; filename=\"Eaglercraft-1.12.html\"",
+        "Cache-Control": "public, max-age=300",
+        "X-Content-Type-Options": "nosniff"
+      });
+      return res.end(game);
+    } catch {
+      return send(res, 502, { error: "Eaglercraft is temporarily unavailable. Please try again." });
+    }
+  }
+
   if (url.pathname === "/health" && req.method === "GET") {
     return send(res, 200, { ok: true, service: "PINAPPLE API", database: databaseReady ? "connected" : "not_configured" });
   }
