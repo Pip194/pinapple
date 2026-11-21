@@ -437,6 +437,8 @@ const server = http.createServer(async (req, res) => {
              FROM chat_participants p2 JOIN students st ON st.id = p2.student_id
              WHERE p2.conversation_id = c.id AND p2.student_id <> $1) AS "participantNames",
             (SELECT m.body FROM chat_messages m WHERE m.conversation_id = c.id ORDER BY m.created_at DESC LIMIT 1) AS "lastMessage",
+            (SELECT m.id FROM chat_messages m WHERE m.conversation_id = c.id ORDER BY m.created_at DESC LIMIT 1) AS "lastMessageId",
+            (SELECT m.sender_id FROM chat_messages m WHERE m.conversation_id = c.id ORDER BY m.created_at DESC LIMIT 1) AS "lastSenderId",
             (SELECT m.created_at FROM chat_messages m WHERE m.conversation_id = c.id ORDER BY m.created_at DESC LIMIT 1) AS "lastMessageAt",
             (SELECT COUNT(*)::int FROM chat_messages m WHERE m.conversation_id = c.id AND m.sender_id <> $1 AND m.created_at > p.last_read_at) AS "unreadCount"
            FROM chat_conversations c JOIN chat_participants p ON p.conversation_id = c.id
@@ -491,10 +493,16 @@ const server = http.createServer(async (req, res) => {
         if (!member.rows[0]) return send(res, 403, { error: "You are not a member of this conversation." });
         await pool.query("UPDATE chat_participants SET last_read_at = NOW() WHERE conversation_id = $1 AND student_id = $2", [conversationId, session.id]);
         const result = await pool.query(
-          `SELECT m.id, m.body, m.created_at AS "createdAt", st.roll_number AS "senderRollNumber", st.full_name AS "senderName"
+          `SELECT m.id, m.body, m.created_at AS "createdAt", st.roll_number AS "senderRollNumber", st.full_name AS "senderName",
+             CASE WHEN m.sender_id = $2 THEN
+               (SELECT COUNT(*)::int FROM chat_participants rp WHERE rp.conversation_id = m.conversation_id AND rp.student_id <> m.sender_id AND rp.last_read_at >= m.created_at)
+             ELSE 0 END AS "readCount",
+             CASE WHEN m.sender_id = $2 THEN
+               (SELECT COUNT(*)::int FROM chat_participants rp WHERE rp.conversation_id = m.conversation_id AND rp.student_id <> m.sender_id)
+             ELSE 0 END AS "recipientCount"
            FROM (SELECT * FROM chat_messages WHERE conversation_id = $1 ORDER BY created_at DESC LIMIT 100) m
            JOIN students st ON st.id = m.sender_id ORDER BY m.created_at ASC`,
-          [conversationId]
+          [conversationId, session.id]
         );
         return send(res, 200, { messages: result.rows });
       }
