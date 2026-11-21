@@ -294,3 +294,23 @@ body{background:radial-gradient(ellipse at 78% -12%,rgba(197,220,118,.11),transp
 .chat-privacy-note{display:flex;align-items:center;gap:7px;margin-top:12px}
 @media(max-width:850px){.chat-layout{grid-template-columns:1fr;min-height:0}.chat-conversation-list{max-height:260px}.chat-thread{min-height:520px}.chat-messages{max-height:390px}}
 @media(max-width:520px){.chat-people,.chat-thread{padding:13px}.chat-message{max-width:90%}.chat-compose{align-items:stretch;flex-direction:column}.chat-compose .primary-btn{align-self:flex-end}}
+
+
+/* PINAPPLE Chat enhancements */
+.chat-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 14px;padding:10px 13px;border:1px solid var(--line,#333);border-radius:12px}
+.chat-toolbar>span{display:flex;align-items:center;gap:7px}
+.chat-notification-btn{display:inline-flex;align-items:center;gap:8px;padding:9px 12px;border:1px solid var(--line,#444);border-radius:10px;background:var(--surface-2,rgba(128,128,128,.12));color:inherit;font:inherit;font-size:12px;font-weight:650;cursor:pointer}
+.chat-compose-tools{position:relative;display:flex;align-items:flex-end;gap:9px;flex:1;min-width:0}
+.chat-emoji-wrap{position:relative;flex:0 0 auto}
+.chat-emoji-trigger{width:40px;height:40px;display:grid;place-items:center;border:1px solid var(--line,#444);border-radius:11px;background:transparent;color:inherit;cursor:pointer}
+.chat-emoji-picker{position:absolute;z-index:20;bottom:48px;left:0;width:250px;display:grid;grid-template-columns:repeat(6,1fr);gap:3px;padding:9px;border:1px solid var(--line,#444);border-radius:13px;background:var(--surface,#171a17);box-shadow:0 12px 36px rgba(0,0,0,.25)}
+.chat-emoji-picker button{height:35px;border:0;border-radius:8px;background:transparent;font-size:20px;cursor:pointer}
+.chat-emoji-picker button:hover{background:var(--surface-2,rgba(128,128,128,.16))}
+.chat-compose-tools textarea{flex:1;min-width:0}
+.chat-message-meta{display:flex;align-items:center;justify-content:flex-end;gap:7px;margin-top:6px}
+.chat-message-meta time{margin:0}
+.chat-read-receipt{display:inline-flex;align-items:center;gap:2px;line-height:1}
+.chat-read-receipt.unread{color:#9299a3}
+.chat-read-receipt.read{color:#28a9f5}
+.chat-read-receipt small{font-size:9px;color:var(--muted,#888)}
+@media(max-width:520px){.chat-toolbar{align-items:flex-start;flex-direction:column}.chat-compose-tools{align-items:stretch}.chat-emoji-picker{width:230px}.chat-compose-tools textarea{width:100%}}
