@@ -422,7 +422,7 @@ const server = http.createServer(async (req, res) => {
 
       if (url.pathname === "/api/chat/students" && req.method === "GET") {
         const q = String(url.searchParams.get("q") || "").trim().slice(0, 80);
-        const like = "%" + q.replace(/[\\%_]/g, "\\  const imageMatch = url.pathname.match(/^\/api\/tmdb\/image\/") + "%";
+        const like = "%" + q + "%";
         const result = await pool.query(
           "SELECT roll_number AS \"rollNumber\", full_name AS \"fullName\" FROM students WHERE is_active = TRUE AND id <> $1 AND ($2 = '' OR full_name ILIKE $3 OR roll_number ILIKE $3) ORDER BY full_name LIMIT 30",
           [session.id, q, like]
@@ -452,7 +452,7 @@ const server = http.createServer(async (req, res) => {
         const body = await readBody(req);
         const rolls = Array.isArray(body.participantRollNumbers) ? body.participantRollNumbers.map(x => String(x)) : [];
         const uniqueRolls = [...new Set([session.roll_number, ...rolls])];
-        if (uniqueRolls.length < 2 || uniqueRolls.length > 20 || uniqueRolls.some(x => !/^\\d{4}$/.test(x))) {
+        if (uniqueRolls.length < 2 || uniqueRolls.length > 20 || uniqueRolls.some(x => !/^\d{4}$/.test(x))) {
           return send(res, 400, { error: "Choose between 1 and 19 other PINAPPLE accounts." });
         }
         const found = await pool.query(
@@ -484,7 +484,7 @@ const server = http.createServer(async (req, res) => {
         return send(res, 201, { conversationId });
       }
 
-      const messagesMatch = url.pathname.match(/^\\/api\\/chat\\/conversations\\/([0-9]+)\\/messages$/);
+      const messagesMatch = url.pathname.match(/^\/api\/chat\/conversations\/([0-9]+)\/messages$/);
       if (messagesMatch && req.method === "GET") {
         const conversationId = Number(messagesMatch[1]);
         const member = await pool.query("SELECT 1 FROM chat_participants WHERE conversation_id = $1 AND student_id = $2", [conversationId, session.id]);
