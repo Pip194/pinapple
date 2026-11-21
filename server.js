@@ -159,7 +159,7 @@ const server = http.createServer(async (req, res) => {
         const roll = String(student.rollNumber || "");
         const name = String(student.fullName || "").trim();
         const role = student.role === "admin" ? "admin" : "student";
-        if (!/^\\d{4}$/.test(roll) || !name || name.length > 120 || seen.has(roll)) {
+        if (!/^\d{4}$/.test(roll) || !name || name.length > 120 || seen.has(roll)) {
           return send(res, 400, { error: "Each student needs a unique four-digit roll number and a name of up to 120 characters." });
         }
         seen.add(roll);
@@ -205,7 +205,7 @@ const server = http.createServer(async (req, res) => {
         const roll = String(body.rollNumber || "").trim();
         const inviteCode = String(body.inviteCode || "");
         const password = String(body.password || "");
-        if (!/^\\d{4}$/.test(roll) || inviteCode.length < 20 || password.length < 10 ||
+        if (!/^\d{4}$/.test(roll) || inviteCode.length < 20 || password.length < 10 ||
             !/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/\\d/.test(password) || !/[^A-Za-z0-9]/.test(password)) {
           return send(res, 400, { error: "Use your four-digit roll number, valid invitation code, and a strong password (10+ characters with upper/lowercase, a number and a symbol)." });
         }
