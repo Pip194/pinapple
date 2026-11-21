@@ -49,6 +49,18 @@ CREATE TABLE IF NOT EXISTS sessions (
 );
 CREATE INDEX IF NOT EXISTS sessions_student_id_idx ON sessions(student_id);
 CREATE INDEX IF NOT EXISTS sessions_expires_at_idx ON sessions(expires_at);
+CREATE TABLE IF NOT EXISTS moderation_reports (
+  id BIGSERIAL PRIMARY KEY,
+  student_id BIGINT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+  category VARCHAR(40) NOT NULL,
+  details TEXT NOT NULL,
+  status VARCHAR(16) NOT NULL DEFAULT 'open' CHECK (status IN ('open','reviewing','resolved','dismissed')),
+  admin_note TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  resolved_by BIGINT REFERENCES students(id)
+);
+CREATE INDEX IF NOT EXISTS moderation_reports_status_idx ON moderation_reports(status, created_at DESC);
 CREATE TABLE IF NOT EXISTS student_invites (
   id BIGSERIAL PRIMARY KEY,
   student_id BIGINT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
@@ -285,6 +297,82 @@ const server = http.createServer(async (req, res) => {
     } catch (error) {
       console.error("Authentication request failed:", error.message);
       return send(res, 500, { error: "The authentication service encountered an error." });
+    }
+  }
+
+  if (url.pathname === "/api/reports" && req.method === "POST") {
+    if (!requireDatabase(res)) return;
+    try {
+      const session = await getSession(req);
+      if (!session) return send(res, 401, { error: "Not signed in." });
+      const body = await readBody(req);
+      const category = String(body.category || "").trim();
+      const details = String(body.details || "").trim();
+      if (!["Bullying or harassment","Inappropriate content","Safety concern","Account issue","Other"].includes(category) || details.length < 10 || details.length > 2000) {
+        return send(res, 400, { error: "Choose a report category and provide 10–2000 characters of detail." });
+      }
+      const result = await pool.query("INSERT INTO moderation_reports (student_id, category, details) VALUES ($1,$2,$3) RETURNING id, status, created_at AS \"createdAt\"", [session.id, category, details]);
+      return send(res, 201, { report: result.rows[0] });
+    } catch (error) {
+      console.error("Report submission failed:", error.message);
+      return send(res, 500, { error: "Could not submit your report." });
+    }
+  }
+
+  if (url.pathname === "/api/admin/reports" && req.method === "GET") {
+    if (!requireDatabase(res)) return;
+    try {
+      const session = await getSession(req);
+      if (!session || session.role !== "admin") return send(res, 403, { error: "Administrator access required." });
+      const result = await pool.query("SELECT r.id, r.category, r.details, r.status, r.admin_note AS \"adminNote\", r.created_at AS \"createdAt\", r.updated_at AS \"updatedAt\", st.roll_number AS \"rollNumber\", st.full_name AS \"fullName\" FROM moderation_reports r JOIN students st ON st.id = r.student_id ORDER BY CASE r.status WHEN 'open' THEN 0 WHEN 'reviewing' THEN 1 ELSE 2 END, r.created_at DESC LIMIT 200");
+      return send(res, 200, { reports: result.rows });
+    } catch (error) {
+      console.error("Moderation queue failed:", error.message);
+      return send(res, 500, { error: "Could not load moderation reports." });
+    }
+  }
+
+  const reportAction = url.pathname.match(/^\\/api\\/admin\\/reports\\/([0-9]+)$/);
+  if (reportAction && req.method === "PATCH") {
+    if (!requireDatabase(res)) return;
+    try {
+      const session = await getSession(req);
+      if (!session || session.role !== "admin") return send(res, 403, { error: "Administrator access required." });
+      const body = await readBody(req);
+      const status = String(body.status || "");
+      const note = String(body.adminNote || "").trim().slice(0, 1000);
+      if (!["open","reviewing","resolved","dismissed"].includes(status)) return send(res, 400, { error: "Invalid report status." });
+      const result = await pool.query("UPDATE moderation_reports SET status = $1, admin_note = $2, updated_at = NOW(), resolved_by = $3 WHERE id = $4 RETURNING id, status, admin_note AS \"adminNote\", updated_at AS \"updatedAt\"", [status, note || null, session.id, Number(reportAction[1])]);
+      if (!result.rows[0]) return send(res, 404, { error: "Report not found." });
+      return send(res, 200, { report: result.rows[0] });
+    } catch (error) {
+      console.error("Moderation update failed:", error.message);
+      return send(res, 500, { error: "Could not update the report." });
+    }
+  }
+
+  const studentAction = url.pathname.match(/^\\/api\\/admin\\/students\\/([0-9]{4})$/);
+  if (studentAction && req.method === "PATCH") {
+    if (!requireDatabase(res)) return;
+    try {
+      const session = await getSession(req);
+      if (!session || session.role !== "admin") return send(res, 403, { error: "Administrator access required." });
+      const target = await pool.query("SELECT id, role, is_active FROM students WHERE roll_number = $1", [studentAction[1]]);
+      if (!target.rows[0]) return send(res, 404, { error: "Student account not found." });
+      const body = await readBody(req);
+      const current = target.rows[0];
+      const nextActive = typeof body.isActive === "boolean" ? body.isActive : current.is_active;
+      const nextRole = ["admin","student"].includes(body.role) ? body.role : current.role;
+      if (session.id === current.id && (!nextActive || nextRole !== "admin")) return send(res, 400, { error: "You cannot disable or remove your own administrator access." });
+      if (current.role === "admin" && (nextRole !== "admin" || !nextActive)) {
+        const admins = await pool.query("SELECT COUNT(*)::int AS count FROM students WHERE role = 'admin' AND is_active = TRUE");
+        if (admins.rows[0].count <= 1) return send(res, 400, { error: "At least one active administrator must remain." });
+      }
+      const result = await pool.query("UPDATE students SET is_active = $1, role = $2, updated_at = NOW() WHERE id = $3 RETURNING roll_number AS \"rollNumber\", full_name AS \"fullName\", role, is_active AS \"isActive\"", [nextActive, nextRole, current.id]);
+      return send(res, 200, { student: result.rows[0] });
+    } catch (error) {
+      console.error("Account update failed:", error.message);
+      return send(res, 500, { error: "Could not update the student account." });
     }
   }
 
