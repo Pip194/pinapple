@@ -16,9 +16,13 @@ const ALLOWED = [
   /^tv\/[0-9]+$/
 ];
 
+const databaseSsl = process.env.DATABASE_CA_CERT
+  ? { ca: process.env.DATABASE_CA_CERT.replace(/\\n/g, "\n"), rejectUnauthorized: true }
+  : { rejectUnauthorized: true };
+
 const pool = process.env.DATABASE_URL ? new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: true },
+  ssl: databaseSsl,
   max: 5,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 10000
