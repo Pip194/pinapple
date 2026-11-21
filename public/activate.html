@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PINAPPLE · Activate account</title>
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:#090d0b;color:#f4f7f3;font:15px/1.6 Inter,system-ui,sans-serif;display:grid;place-items:center;padding:24px}.card{width:min(480px,100%);background:#121a16;border:1px solid #29372f;border-radius:22px;padding:30px;box-shadow:0 24px 80px #0008}h1{margin:0 0 8px;font-size:28px}p{color:#aab8af}.tag{color:#b8db9d;font-size:11px;letter-spacing:2px;font-weight:800}label{display:block;margin:18px 0 7px;color:#c6d2c9;font-size:12px;font-weight:800;letter-spacing:1px}input{width:100%;background:#080e0b;border:1px solid #34463a;border-radius:10px;color:#fff;padding:13px;font:14px ui-monospace,monospace}button{margin-top:20px;width:100%;border:0;border-radius:10px;background:#c1e59e;color:#10200f;padding:13px;font-weight:800;cursor:pointer}.error{color:#ff9d9d}.success{color:#b9e59b}
+</style></head><body><main class="card"><div class="tag">PINAPPLE · STUDENT ACCOUNT</div><h1>Activate your account</h1><p>Use the invitation code given to you by a PINAPPLE administrator. Create a password that only you know.</p>
+<form id="form"><label for="roll">STUDENT ROLL NUMBER</label><input id="roll" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" required>
+<label for="invite">INVITATION CODE</label><input id="invite" autocomplete="off" required>
+<label for="password">CREATE PASSWORD</label><input id="password" type="password" minlength="10" autocomplete="new-password" required>
+<button type="submit">Activate account</button></form><p id="status" role="status"></p></main>
+<script>
+const API="https://pinapple-api.onrender.com";
+document.querySelector("#form").addEventListener("submit",async e=>{e.preventDefault();const status=document.querySelector("#status");status.className="";status.textContent="Activating…";try{const response=await fetch(API+"/api/auth/activate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({rollNumber:document.querySelector("#roll").value,inviteCode:document.querySelector("#invite").value,password:document.querySelector("#password").value})});const data=await response.json();if(!response.ok)throw new Error(data.error||"Activation failed.");status.className="success";status.textContent="Account activated. You can now return to PINAPPLE and sign in.";document.querySelector("#form").reset();}catch(error){status.className="error";status.textContent=error.message;}});
+</script></body></html>

@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101810">
+  <title>Eaglercraft 1.12 · PINAPPLE</title>
+  <style>
+    html,body{margin:0;width:100%;height:100%;background:#101810;color:#f4f7f1;font:16px system-ui,sans-serif}
+    body{display:grid;place-items:center}
+    main{max-width:560px;padding:32px;text-align:center}
+    .pine{font-size:44px}h1{font-size:25px;margin:12px 0}p{color:#b8c4b4;line-height:1.6}
+    .track{height:5px;background:#293629;border-radius:9px;overflow:hidden;margin:24px auto;width:min(300px,80vw)}
+    .track span{display:block;height:100%;width:35%;background:#91c85a;border-radius:9px;animation:load 1.2s ease-in-out infinite alternate}
+    @keyframes load{to{transform:translateX(185%)}}
+    button{background:#91c85a;color:#10200c;border:0;border-radius:9px;padding:11px 18px;font-weight:700;cursor:pointer}
+  </style>
+</head>
+<body>
+  <main id="status">
+    <div class="pine">🍍</div>
+    <h1>Loading Eaglercraft 1.12</h1>
+    <p>Preparing the game… This may take a little while because the offline game is a large file.</p>
+    <div class="track"><span></span></div>
+  </main>
+  <script>
+    (async function () {
+      const gameUrl = "https://offgeygyhxkjsbwvydlz.supabase.co/storage/v1/object/public/pinapple-games/Eaglercraft_1%20(2).12_Offline_en_US.html";
+      try {
+        const response = await fetch(gameUrl, { mode: "cors", cache: "no-store" });
+        if (!response.ok) throw new Error("The game file returned HTTP " + response.status);
+        const html = await response.text();
+        if (!html || !/<html|<!doctype/i.test(html.slice(0, 2000))) {
+          throw new Error("The downloaded file does not look like an HTML game.");
+        }
+        document.open();
+        document.write(html);
+        document.close();
+      } catch (error) {
+        const status = document.getElementById("status");
+        if (status) {
+          status.innerHTML = "<div class='pine'>🍍</div><h1>Could not load Eaglercraft</h1><p>" +
+            String(error && error.message ? error.message : error).replace(/[&<>"]/g, function (c) {
+              return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];
+            }) +
+            "</p><p>Check that the Supabase game file is public and that this network allows it to load.</p><button onclick='location.reload()'>Try again</button>";
+        }
+      }
+    })();
+  </script>
+</body>
+</html>

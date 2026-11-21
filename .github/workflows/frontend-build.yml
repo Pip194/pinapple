@@ -2,7 +2,7 @@ name: Frontend build
 
 on:
   push:
-    branches: [main]
+    branches: ["**"]
   pull_request:
     branches: [main]
 
@@ -18,5 +18,7 @@ jobs:
           node-version: 20
       - name: Install dependencies
         run: npm install
+      - name: Check API syntax
+        run: node --check server.js
       - name: Build frontend
         run: npm run build

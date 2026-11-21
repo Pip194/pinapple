@@ -4,6 +4,9 @@ services:
     runtime: static
     buildCommand: npm install && npm run build
     staticPublishPath: ./dist
+    envVars:
+      - key: VITE_API_BASE_URL
+        value: https://pinapple-api.onrender.com
     headers:
       - path: /*
         name: X-Content-Type-Options
@@ -11,3 +14,22 @@ services:
       - path: /*
         name: Referrer-Policy
         value: strict-origin-when-cross-origin
+
+  - type: web
+    name: pinapple-api
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: DATABASE_URL
+        sync: false
+      - key: PINAPPLE_BOOTSTRAP_KEY
+        sync: false
+      - key: FRONTEND_ORIGIN
+        value: https://pinapple.onrender.com
+      - key: TMDB_ACCESS_TOKEN
+        sync: false
