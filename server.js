@@ -439,6 +439,7 @@ const server = http.createServer(async (req, res) => {
             (SELECT m.body FROM chat_messages m WHERE m.conversation_id = c.id ORDER BY m.created_at DESC LIMIT 1) AS "lastMessage",
             (SELECT m.id FROM chat_messages m WHERE m.conversation_id = c.id ORDER BY m.created_at DESC LIMIT 1) AS "lastMessageId",
             (SELECT m.sender_id FROM chat_messages m WHERE m.conversation_id = c.id ORDER BY m.created_at DESC LIMIT 1) AS "lastSenderId",
+            (SELECT st.roll_number FROM chat_messages m JOIN students st ON st.id = m.sender_id WHERE m.conversation_id = c.id ORDER BY m.created_at DESC LIMIT 1) AS "lastSenderRollNumber",
             (SELECT m.created_at FROM chat_messages m WHERE m.conversation_id = c.id ORDER BY m.created_at DESC LIMIT 1) AS "lastMessageAt",
             (SELECT COUNT(*)::int FROM chat_messages m WHERE m.conversation_id = c.id AND m.sender_id <> $1 AND m.created_at > p.last_read_at) AS "unreadCount"
            FROM chat_conversations c JOIN chat_participants p ON p.conversation_id = c.id
