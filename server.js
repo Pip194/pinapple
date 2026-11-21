@@ -69,6 +69,30 @@ CREATE TABLE IF NOT EXISTS student_invites (
   used_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+CREATE TABLE IF NOT EXISTS chat_conversations (
+  id BIGSERIAL PRIMARY KEY,
+  kind VARCHAR(8) NOT NULL CHECK (kind IN ('direct','group')),
+  title VARCHAR(80),
+  created_by BIGINT NOT NULL REFERENCES students(id),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE TABLE IF NOT EXISTS chat_participants (
+  conversation_id BIGINT NOT NULL REFERENCES chat_conversations(id) ON DELETE CASCADE,
+  student_id BIGINT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+  joined_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  last_read_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (conversation_id, student_id)
+);
+CREATE INDEX IF NOT EXISTS chat_participants_student_idx ON chat_participants(student_id, conversation_id);
+CREATE TABLE IF NOT EXISTS chat_messages (
+  id BIGSERIAL PRIMARY KEY,
+  conversation_id BIGINT NOT NULL REFERENCES chat_conversations(id) ON DELETE CASCADE,
+  sender_id BIGINT NOT NULL REFERENCES students(id),
+  body VARCHAR(2000) NOT NULL CHECK (length(trim(body)) > 0),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS chat_messages_conversation_idx ON chat_messages(conversation_id, created_at DESC);
 `;
 
 let databaseReady = false;
@@ -386,6 +410,115 @@ const server = http.createServer(async (req, res) => {
     } catch (error) {
       console.error("Admin request failed:", error.message);
       return send(res, 500, { error: "Could not load the student directory." });
+    }
+  }
+
+
+  if (url.pathname.startsWith("/api/chat/")) {
+    if (!requireDatabase(res)) return;
+    try {
+      const session = await getSession(req);
+      if (!session) return send(res, 401, { error: "Not signed in." });
+
+      if (url.pathname === "/api/chat/students" && req.method === "GET") {
+        const q = String(url.searchParams.get("q") || "").trim().slice(0, 80);
+        const like = "%" + q.replace(/[\\%_]/g, "\\  const imageMatch = url.pathname.match(/^\/api\/tmdb\/image\/") + "%";
+        const result = await pool.query(
+          "SELECT roll_number AS \"rollNumber\", full_name AS \"fullName\" FROM students WHERE is_active = TRUE AND id <> $1 AND ($2 = '' OR full_name ILIKE $3 OR roll_number ILIKE $3) ORDER BY full_name LIMIT 30",
+          [session.id, q, like]
+        );
+        return send(res, 200, { students: result.rows });
+      }
+
+      if (url.pathname === "/api/chat/conversations" && req.method === "GET") {
+        const result = await pool.query(
+          `SELECT c.id, c.kind, c.title, c.created_at AS "createdAt",
+            (SELECT string_agg(st.full_name, ', ' ORDER BY st.full_name)
+             FROM chat_participants p2 JOIN students st ON st.id = p2.student_id
+             WHERE p2.conversation_id = c.id AND p2.student_id <> $1) AS "participantNames",
+            (SELECT m.body FROM chat_messages m WHERE m.conversation_id = c.id ORDER BY m.created_at DESC LIMIT 1) AS "lastMessage",
+            (SELECT m.created_at FROM chat_messages m WHERE m.conversation_id = c.id ORDER BY m.created_at DESC LIMIT 1) AS "lastMessageAt",
+            (SELECT COUNT(*)::int FROM chat_messages m WHERE m.conversation_id = c.id AND m.sender_id <> $1 AND m.created_at > p.last_read_at) AS "unreadCount"
+           FROM chat_conversations c JOIN chat_participants p ON p.conversation_id = c.id
+           WHERE p.student_id = $1
+           ORDER BY COALESCE((SELECT MAX(m.created_at) FROM chat_messages m WHERE m.conversation_id = c.id), c.created_at) DESC
+           LIMIT 100`,
+          [session.id]
+        );
+        return send(res, 200, { conversations: result.rows });
+      }
+
+      if (url.pathname === "/api/chat/conversations" && req.method === "POST") {
+        const body = await readBody(req);
+        const rolls = Array.isArray(body.participantRollNumbers) ? body.participantRollNumbers.map(x => String(x)) : [];
+        const uniqueRolls = [...new Set([session.roll_number, ...rolls])];
+        if (uniqueRolls.length < 2 || uniqueRolls.length > 20 || uniqueRolls.some(x => !/^\\d{4}$/.test(x))) {
+          return send(res, 400, { error: "Choose between 1 and 19 other PINAPPLE accounts." });
+        }
+        const found = await pool.query(
+          "SELECT id, roll_number FROM students WHERE is_active = TRUE AND roll_number = ANY($1::varchar[])",
+          [uniqueRolls]
+        );
+        if (found.rows.length !== uniqueRolls.length) return send(res, 400, { error: "One or more selected accounts are unavailable." });
+        const kind = uniqueRolls.length === 2 ? "direct" : "group";
+        const title = kind === "group" ? String(body.title || "").trim().slice(0, 80) || null : null;
+        const client = await pool.connect();
+        let conversationId;
+        try {
+          await client.query("BEGIN");
+          const created = await client.query(
+            "INSERT INTO chat_conversations (kind, title, created_by) VALUES ($1,$2,$3) RETURNING id",
+            [kind, title, session.id]
+          );
+          conversationId = created.rows[0].id;
+          for (const student of found.rows) {
+            await client.query("INSERT INTO chat_participants (conversation_id, student_id) VALUES ($1,$2)", [conversationId, student.id]);
+          }
+          await client.query("COMMIT");
+        } catch (error) {
+          await client.query("ROLLBACK");
+          throw error;
+        } finally {
+          client.release();
+        }
+        return send(res, 201, { conversationId });
+      }
+
+      const messagesMatch = url.pathname.match(/^\\/api\\/chat\\/conversations\\/([0-9]+)\\/messages$/);
+      if (messagesMatch && req.method === "GET") {
+        const conversationId = Number(messagesMatch[1]);
+        const member = await pool.query("SELECT 1 FROM chat_participants WHERE conversation_id = $1 AND student_id = $2", [conversationId, session.id]);
+        if (!member.rows[0]) return send(res, 403, { error: "You are not a member of this conversation." });
+        await pool.query("UPDATE chat_participants SET last_read_at = NOW() WHERE conversation_id = $1 AND student_id = $2", [conversationId, session.id]);
+        const result = await pool.query(
+          `SELECT m.id, m.body, m.created_at AS "createdAt", st.roll_number AS "senderRollNumber", st.full_name AS "senderName"
+           FROM (SELECT * FROM chat_messages WHERE conversation_id = $1 ORDER BY created_at DESC LIMIT 100) m
+           JOIN students st ON st.id = m.sender_id ORDER BY m.created_at ASC`,
+          [conversationId]
+        );
+        return send(res, 200, { messages: result.rows });
+      }
+
+      if (messagesMatch && req.method === "POST") {
+        const conversationId = Number(messagesMatch[1]);
+        const member = await pool.query("SELECT 1 FROM chat_participants WHERE conversation_id = $1 AND student_id = $2", [conversationId, session.id]);
+        if (!member.rows[0]) return send(res, 403, { error: "You are not a member of this conversation." });
+        const body = await readBody(req);
+        const message = String(body.message || "").trim();
+        if (!message || message.length > 2000) return send(res, 400, { error: "Messages must contain 1–2000 characters." });
+        const result = await pool.query(
+          `INSERT INTO chat_messages (conversation_id, sender_id, body) VALUES ($1,$2,$3)
+           RETURNING id, body, created_at AS "createdAt"`,
+          [conversationId, session.id, message]
+        );
+        await pool.query("UPDATE chat_participants SET last_read_at = NOW() WHERE conversation_id = $1 AND student_id = $2", [conversationId, session.id]);
+        return send(res, 201, { message: { ...result.rows[0], senderRollNumber: session.roll_number, senderName: session.full_name } });
+      }
+
+      return send(res, 404, { error: "Chat route not found." });
+    } catch (error) {
+      console.error("Chat request failed:", error.message);
+      return send(res, 500, { error: "The chat service encountered an error." });
     }
   }
 
