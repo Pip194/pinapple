@@ -113,7 +113,7 @@ async function getSession(req) {
   return result.rows[0] || null;
 }
 function cookie(value, maxAge) {
-  return `${COOKIE_NAME}=${encodeURIComponent(value)}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${maxAge}`;
+  return `${COOKIE_NAME}=${encodeURIComponent(value)}; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=${maxAge}`;
 }
 function requireDatabase(res) {
   if (!pool || !databaseReady) {
