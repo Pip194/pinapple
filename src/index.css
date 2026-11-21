@@ -314,3 +314,27 @@ body{background:radial-gradient(ellipse at 78% -12%,rgba(197,220,118,.11),transp
 .chat-read-receipt.read{color:#28a9f5}
 .chat-read-receipt small{font-size:9px;color:var(--muted,#888)}
 @media(max-width:520px){.chat-toolbar{align-items:flex-start;flex-direction:column}.chat-compose-tools{align-items:stretch}.chat-emoji-picker{width:230px}.chat-compose-tools textarea{width:100%}}
+
+
+/* PINAPPLE pineapple identity + trivia loading screen */
+.brand-mark{font-family:"Apple Color Emoji","Segoe UI Emoji",sans-serif;font-size:23px;line-height:1;transform:rotate(-8deg);text-shadow:0 2px 7px rgba(0,0,0,.16)}
+.brand-mark span,.brand-mark i{display:none}
+.brand-mark.small{font-size:19px}
+.pin-loading-screen{min-height:100vh;display:grid;place-items:center;overflow:hidden;padding:28px;background:radial-gradient(ellipse at 50% 42%,rgba(197,242,138,.13),transparent 38%),#080c13;color:#edf0f7}
+.pin-loading-content{width:min(390px,100%);display:flex;flex-direction:column;align-items:center;text-align:center}
+.pin-loading-fruit{font-family:"Apple Color Emoji","Segoe UI Emoji",sans-serif;font-size:82px;line-height:1;margin-bottom:22px;filter:drop-shadow(0 12px 25px rgba(197,242,138,.22));animation:pinapple-spin 2.8s linear infinite}
+@keyframes pinapple-spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.pin-loading-wordmark{font:700 30px "Space Grotesk",sans-serif;letter-spacing:-1.5px}
+.pin-loading-wordmark span{font-size:15px;letter-spacing:3px;margin-left:5px;color:var(--green)}
+.pin-loading-wordmark i{font-style:normal;color:var(--green)}
+.pin-loading-status{display:flex;align-items:center;gap:8px;margin-top:13px;color:#9aa7ba;font-size:9px;font-weight:700;letter-spacing:1.8px}
+.pin-loading-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 12px #c5f28a;animation:pin-dot-pulse 1s ease-in-out infinite alternate}
+@keyframes pin-dot-pulse{to{opacity:.3;transform:scale(.72)}}
+.pin-trivia{width:100%;min-height:105px;margin-top:42px;padding:18px 20px;border:1px solid rgba(197,242,138,.19);border-radius:15px;background:linear-gradient(145deg,rgba(197,242,138,.075),rgba(16,23,34,.78));display:flex;flex-direction:column;justify-content:center;gap:9px}
+.pin-trivia-label{font-size:9px;font-weight:800;letter-spacing:1.8px;color:var(--green)}
+.pin-trivia p{margin:0;color:#dce4ef;font-size:13px;line-height:1.65;animation:pin-fact-in .35s ease}
+@keyframes pin-fact-in{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.pin-loading-track{width:150px;height:3px;border-radius:4px;background:#ffffff17;overflow:hidden;margin-top:26px}
+.pin-loading-track span{display:block;width:42%;height:100%;border-radius:4px;background:var(--green);animation:pin-loading-sweep 1.35s ease-in-out infinite}
+@keyframes pin-loading-sweep{from{transform:translateX(-110%)}to{transform:translateX(250%)}}
+@media(prefers-reduced-motion:reduce){.pin-loading-fruit,.pin-loading-dot,.pin-trivia p,.pin-loading-track span{animation:none!important}}
