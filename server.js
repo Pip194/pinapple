@@ -332,7 +332,7 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
-  const reportAction = url.pathname.match(/^\\/api\\/admin\\/reports\\/([0-9]+)$/);
+  const reportAction = url.pathname.match(/^\/api\/admin\/reports\/([0-9]+)$/);
   if (reportAction && req.method === "PATCH") {
     if (!requireDatabase(res)) return;
     try {
@@ -351,7 +351,7 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
-  const studentAction = url.pathname.match(/^\\/api\\/admin\\/students\\/([0-9]{4})$/);
+  const studentAction = url.pathname.match(/^\/api\/admin\/students\/([0-9]{4})$/);
   if (studentAction && req.method === "PATCH") {
     if (!requireDatabase(res)) return;
     try {
