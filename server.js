@@ -206,7 +206,7 @@ const server = http.createServer(async (req, res) => {
         const inviteCode = String(body.inviteCode || "");
         const password = String(body.password || "");
         if (!/^\d{4}$/.test(roll) || inviteCode.length < 20 || password.length < 10 ||
-            !/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/\\d/.test(password) || !/[^A-Za-z0-9]/.test(password)) {
+            !/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/\d/.test(password) || !/[^A-Za-z0-9]/.test(password)) {
           return send(res, 400, { error: "Use your four-digit roll number, valid invitation code, and a strong password (10+ characters with upper/lowercase, a number and a symbol)." });
         }
         const invite = await pool.query(
