@@ -39,6 +39,7 @@ CREATE TABLE IF NOT EXISTS students (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+ALTER TABLE students ADD COLUMN IF NOT EXISTS last_seen_at TIMESTAMPTZ;
 CREATE TABLE IF NOT EXISTS sessions (
   id BIGSERIAL PRIMARY KEY,
   student_id BIGINT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
@@ -197,6 +198,19 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
+  if (url.pathname === "/api/presence/heartbeat" && req.method === "POST") {
+    if (!requireDatabase(res)) return;
+    try {
+      const session = await getSession(req);
+      if (!session) return send(res, 401, { error: "Not signed in." });
+      await pool.query("UPDATE students SET last_seen_at = NOW() WHERE id = $1", [session.id]);
+      return send(res, 200, { ok: true });
+    } catch (error) {
+      console.error("Presence heartbeat failed:", error.message);
+      return send(res, 500, { error: "Could not update online status." });
+    }
+  }
+
   if (url.pathname.startsWith("/api/auth/")) {
     if (!requireDatabase(res)) return;
     try {
@@ -279,7 +293,7 @@ const server = http.createServer(async (req, res) => {
     try {
       const session = await getSession(req);
       if (!session || session.role !== "admin") return send(res, 403, { error: "Administrator access required." });
-      const result = await pool.query("SELECT roll_number AS \"rollNumber\", full_name AS \"fullName\", role, is_active AS \"isActive\", created_at AS \"createdAt\" FROM students ORDER BY full_name");
+      const result = await pool.query("SELECT roll_number AS \"rollNumber\", full_name AS \"fullName\", role, is_active AS \"isActive\", created_at AS \"createdAt\", (last_seen_at >= NOW() - INTERVAL '90 seconds') AS \"isOnline\", last_seen_at AS \"lastSeenAt\" FROM students ORDER BY full_name");
       return send(res, 200, { students: result.rows });
     } catch (error) {
       console.error("Admin request failed:", error.message);
